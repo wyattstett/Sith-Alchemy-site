@@ -1,0 +1,7711 @@
+/* Force Alchemy Interface v0.1.7
+   Static prototype: profiles, character saves, AP skill trees, crafting, creations,
+   creature management, inventory, codex, respec, import/export.
+   Data is stored in localStorage so the same browser returns to saved progress. */
+
+const STORAGE_KEY = 'forceAlchemyApp.v0.1.8';
+
+const TABS = [
+  ['dashboard', 'Dashboard'],
+  ['trees', 'Trees'],
+  ['crafting', 'Crafting'],
+  ['creations', 'Creations'],
+  ['bestiary', 'Bestiary'],
+  ['inventory', 'Inventory'],
+  ['codex', 'Codex'],
+  ['character', 'Character']
+];
+
+const TREE_DATA = {
+  "sith_artifice": {
+    "name": "Sith Artifice",
+    "icon": "⟐",
+    "colorClass": "redish",
+    "tier": "Tier I-IV",
+    "progress": "0/16",
+    "description": "Weapons, armor, relics, masks, gauntlets, talismans, ritual wargear, and later lightsaber imbuements.",
+    "nodes": [
+      {
+        "id": "art_foundation",
+        "name": "Sith-Forged Foundation",
+        "icon": "✦",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 50,
+        "y": 7,
+        "tier": "I",
+        "type": "Foundation",
+        "effect": "Craft basic Sith-forged equipment from scratch and unlock the core artifice workflow. Items forged from scratch can use full component capacity.",
+        "unlocks": [
+          "Sith-Forged Weapon Base",
+          "Sith-Forged Armor Base",
+          "Dark Metal Binding",
+          "Alchemical Grip",
+          "Ritual Tempering"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Armor",
+          "Mask / Helmet",
+          "Gauntlet / Bracer",
+          "Relic",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Alchemical Salts",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Mechanics"
+        ],
+        "dc": 16,
+        "risk": "Low"
+      },
+      {
+        "id": "art_cruel_edge",
+        "name": "Cruel Edge Techniques",
+        "icon": "⚔",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 27,
+        "y": 20,
+        "tier": "I",
+        "type": "Weapon Component Family",
+        "effect": "Unlocks cutting and tearing weapon components: bleeding, rending wounds, pain, and damage over time.",
+        "unlocks": [
+          "Serrated Edge",
+          "Barbed Point",
+          "Rending Teeth",
+          "Cruel Hook Geometry"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Weapon"
+        ],
+        "ingredients": [
+          "Beast Teeth",
+          "Sith Metal Slivers"
+        ],
+        "checks": [
+          "Mechanics",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "art_foundation"
+        ]
+      },
+      {
+        "id": "art_dark_plating",
+        "name": "Dark Plating Methods",
+        "icon": "⬟",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 73,
+        "y": 20,
+        "tier": "I",
+        "type": "Armor Component Family",
+        "effect": "Unlocks basic defensive alchemy, intimidation plating, pain resistance, bone reinforcement, and minor armor reactions.",
+        "unlocks": [
+          "Blackened Armor Plating",
+          "Bone-Reinforced Plates",
+          "Pain-Resistant Padding",
+          "Fear-Marked Surface",
+          "Ritual Rivets"
+        ],
+        "compatible": [
+          "Armor",
+          "Mask / Helmet",
+          "Gauntlet / Bracer"
+        ],
+        "ingredients": [
+          "Armor Plate",
+          "Blood-Reactive Oil"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "art_foundation"
+        ]
+      },
+      {
+        "id": "art_talisman_etching",
+        "name": "Talismanic Etching",
+        "icon": "◎",
+        "cost": 1,
+        "rankMax": 1,
+        "x": 50,
+        "y": 30,
+        "tier": "I",
+        "type": "Relic Component Family",
+        "effect": "Creates minor Sith runes, blood marks, warning sigils, fear charms, and anger reservoirs for small relic effects.",
+        "unlocks": [
+          "Minor Sith Rune",
+          "Blood Mark",
+          "Warning Sigil",
+          "Fear Charm",
+          "Anger Reservoir"
+        ],
+        "compatible": [
+          "Relic",
+          "Mask / Helmet",
+          "Melee Weapon",
+          "Armor",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Ritual Ink",
+          "Low-Grade Kyber Splinter"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "art_foundation"
+        ]
+      },
+      {
+        "id": "art_weapon_channels",
+        "name": "Weapon Channeling Grooves",
+        "icon": "☣",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 18,
+        "y": 37,
+        "tier": "I",
+        "type": "Weapon Channel",
+        "effect": "Allows weapons to carry alchemical compounds, poisons, venoms, acids, or oils more effectively.",
+        "unlocks": [
+          "Poison Channel",
+          "Blood Groove",
+          "Acid Channel",
+          "Oil Reservoir",
+          "Coating Lock"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Gauntlet / Bracer"
+        ],
+        "ingredients": [
+          "Preserved Nerve Tissue",
+          "Alchemical Salts"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "art_cruel_edge"
+        ]
+      },
+      {
+        "id": "art_pain_wargear",
+        "name": "Pain-Reactive Wargear",
+        "icon": "◈",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 73,
+        "y": 43,
+        "tier": "II",
+        "type": "Armor Upgrade",
+        "effect": "Armor and relics become stronger when the wearer takes damage, suffers pain, or channels rage.",
+        "unlocks": [
+          "Pain-Hardened Armor",
+          "Blood-Warm Plating",
+          "Punishment Bracer",
+          "Suffering Ward"
+        ],
+        "compatible": [
+          "Armor",
+          "Mask / Helmet",
+          "Gauntlet / Bracer",
+          "Relic"
+        ],
+        "ingredients": [
+          "Pain Essence",
+          "Blood-Reactive Oil"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "art_dark_plating"
+        ]
+      },
+      {
+        "id": "art_fear_relics",
+        "name": "Fear-Bound Relics",
+        "icon": "☠",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 50,
+        "y": 47,
+        "tier": "II",
+        "type": "Relic Component Family",
+        "effect": "Creates masks, talismans, and armor features that pressure weak minds with dread, panic, or emotional force.",
+        "unlocks": [
+          "Fear Mask",
+          "Terror Rune",
+          "Dread Talisman",
+          "Panic-Eating Charm",
+          "Coward’s Mark"
+        ],
+        "compatible": [
+          "Mask / Helmet",
+          "Relic",
+          "Armor",
+          "Melee Weapon",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Crystallized Fear Residue",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "art_talisman_etching"
+        ]
+      },
+      {
+        "id": "art_blood_reservoir",
+        "name": "Blood Reservoir Construction",
+        "icon": "◆",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 27,
+        "y": 51,
+        "tier": "II",
+        "type": "Energy Reservoir",
+        "effect": "Stores blood, pain, rage, or death-energy for later activation through weapons, armor, tools, or relics.",
+        "unlocks": [
+          "Blood Reservoir",
+          "Pain Reservoir",
+          "Rage Cell",
+          "Vitality Siphon Channel",
+          "Crimson Binding"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Armor",
+          "Relic",
+          "Gauntlet / Bracer",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Blood of a Force-Sensitive",
+          "Pain Essence"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Mechanics",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "art_foundation"
+        ]
+      },
+      {
+        "id": "art_lightsaber_hilt",
+        "name": "Basic Lightsaber Hilt Alchemy",
+        "icon": "☲",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 82,
+        "y": 58,
+        "tier": "II",
+        "type": "Lightsaber Hilt Component",
+        "effect": "Begins basic lightsaber hilt imbuement: grips, casings, emitters, and dark focusing channels. The blade itself is not heavily altered yet.",
+        "unlocks": [
+          "Ritual Grip",
+          "Blood-Etched Activation Plate",
+          "Dark Focusing Channel",
+          "Corrupted Casing",
+          "Fear-Bound Emitter Housing"
+        ],
+        "compatible": [
+          "Lightsaber Hilt"
+        ],
+        "ingredients": [
+          "Low-Grade Kyber Splinter",
+          "Ritual Focusing Lens"
+        ],
+        "checks": [
+          "Mechanics",
+          "Use the Force",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "art_foundation"
+        ]
+      },
+      {
+        "id": "art_cruel_geometry",
+        "name": "Cruel Weapon Geometry",
+        "icon": "⛓",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 18,
+        "y": 62,
+        "tier": "II",
+        "type": "Improved Weapon Wounding",
+        "effect": "Improved wound effects, movement penalties, tendon cutting, bone catching, and disabling strikes.",
+        "unlocks": [
+          "Ripping Spine",
+          "Hooked Blade Path",
+          "Deep Wound Pattern",
+          "Tendon-Cutting Edge",
+          "Bone-Catcher Notch"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Weapon"
+        ],
+        "ingredients": [
+          "Beast Teeth",
+          "Sith Metal Slivers"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "art_cruel_edge"
+        ]
+      },
+      {
+        "id": "art_ghost_etching",
+        "name": "Ghost-Piercing Etching",
+        "icon": "☽",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 34,
+        "y": 72,
+        "tier": "III",
+        "type": "Spirit-Aware Artifice",
+        "effect": "Weapons and relics can harm spirits, Force ghosts, echoes, and incorporeal enemies. Spirits may also sense the wielder.",
+        "unlocks": [
+          "Ghost-Piercing Edge",
+          "Spirit-Burning Rune",
+          "Soul-Ash Inlay",
+          "Dead-Echo Resonator"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Relic",
+          "Lightsaber Hilt",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Ghost-Touched Ash",
+          "Bound Spirit Shard"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "art_talisman_etching"
+        ]
+      },
+      {
+        "id": "art_crystal_resonance",
+        "name": "Sith Crystal Resonance",
+        "icon": "✺",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 82,
+        "y": 73,
+        "tier": "III",
+        "type": "Lightsaber / Crystal Alchemy",
+        "effect": "True lightsaber alchemy begins: corrupted crystal resonance, rage-reactive emitters, unstable dark side flare, and spirit-sensitive blades.",
+        "unlocks": [
+          "Corrupted Crystal Matrix",
+          "Rage-Reactive Emitter",
+          "Pain-Channeling Hilt",
+          "Spirit-Sensitive Blade",
+          "Unstable Dark Side Flare"
+        ],
+        "compatible": [
+          "Lightsaber Hilt",
+          "Relic"
+        ],
+        "ingredients": [
+          "Black Kyber Focus",
+          "Cracked Kyber Dust"
+        ],
+        "checks": [
+          "Use the Force",
+          "Mechanics",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "art_lightsaber_hilt"
+        ]
+      },
+      {
+        "id": "art_living_armor",
+        "name": "Living Armor Seed",
+        "icon": "♜",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 64,
+        "y": 75,
+        "tier": "III",
+        "type": "Living Item",
+        "effect": "Armor grows, reacts, heals, tightens, feeds, or bonds to the wearer through nerve mesh and living plate seeds.",
+        "unlocks": [
+          "Nerve Mesh Lining",
+          "Living Plate Seed",
+          "Pain-Fed Armor",
+          "Flesh-Bonded Harness",
+          "Regenerative Armor Tissue"
+        ],
+        "compatible": [
+          "Armor",
+          "Gauntlet / Bracer",
+          "Mask / Helmet"
+        ],
+        "ingredients": [
+          "Living Organ",
+          "Preserved Abomination Tendon"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "art_pain_wargear"
+        ]
+      },
+      {
+        "id": "art_soul_relicry",
+        "name": "Soul-Etched Relicry",
+        "icon": "◉",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 50,
+        "y": 84,
+        "tier": "III",
+        "type": "Soul Relicry",
+        "effect": "Relics that store memories, pain, rage, death echoes, or pieces of a victim’s final emotion.",
+        "unlocks": [
+          "Soul-Etched Talisman",
+          "Memory-Bound Ring",
+          "Pain Archive",
+          "Death-Echo Charm",
+          "Rage-Storing Relic"
+        ],
+        "compatible": [
+          "Relic",
+          "Mask / Helmet",
+          "Gauntlet / Bracer",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Soul Ash",
+          "Pain Essence"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "art_blood_reservoir",
+          "art_talisman_etching"
+        ]
+      },
+      {
+        "id": "art_intelligent_wargear",
+        "name": "Intelligent Wargear Shell",
+        "icon": "◉",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 32,
+        "y": 94,
+        "tier": "IV",
+        "type": "Forbidden Relic",
+        "effect": "Creates items with awareness, instincts, memories, whispers, or personality fragments. GM Secret Roll required.",
+        "unlocks": [
+          "Whispering Weapon",
+          "Watching Mask",
+          "Advising Talisman",
+          "Murder-Memory Blade",
+          "Semi-Awake Relic"
+        ],
+        "compatible": [
+          "Weapon",
+          "Mask / Helmet",
+          "Relic",
+          "Armor",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Bound Spirit Shard",
+          "Named Object",
+          "Pain-Distilled Serum"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 30,
+        "risk": "Severe",
+        "prereq": [
+          "art_soul_relicry"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "art_masterwork_relic",
+        "name": "Masterwork Sith Relic",
+        "icon": "✹",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 68,
+        "y": 94,
+        "tier": "IV",
+        "type": "Masterwork Relic",
+        "effect": "Allows creation or restoration of major named Sith artifacts with greater blood cores, pain engines, and dark side matrices.",
+        "unlocks": [
+          "Named Sith Artifact Framework",
+          "Ancient Relic Restoration",
+          "Greater Blood Core",
+          "Greater Pain Engine",
+          "Dark Side Power Matrix"
+        ],
+        "compatible": [
+          "All Equipment"
+        ],
+        "ingredients": [
+          "Unique Catalyst",
+          "Ancient Sith Forge Coal"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 30,
+        "risk": "Severe",
+        "prereq": [
+          "art_ghost_etching",
+          "art_living_armor"
+        ],
+        "gate": "story"
+      }
+    ],
+    "family": "starting",
+    "accessLabel": "Starting Tree",
+    "accent": "#f05a4f",
+    "order": 1
+  },
+  "dark_compounds": {
+    "name": "Dark Compounds",
+    "icon": "⚗",
+    "colorClass": "greenish",
+    "tier": "Tier I-IV",
+    "progress": "0/16",
+    "description": "Poisons, acids, vapors, oils, serums, mutagens, injections, bombs, battlefield compounds, and Sith beast transformations.",
+    "nodes": [
+      {
+        "id": "cmp_toxicology",
+        "name": "Sith Toxicology",
+        "icon": "✦",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 50,
+        "y": 7,
+        "tier": "I",
+        "type": "Poison Foundation",
+        "effect": "Basic poison, pain, numbness, weakness, and discomfort. Opens the Dark Compounds crafting workflow.",
+        "unlocks": [
+          "Basic Sith Venom",
+          "Weak Paralytic Dose",
+          "Numbing Oil",
+          "Irritant Powder",
+          "Pain Draught"
+        ],
+        "compatible": [
+          "Bomb",
+          "Mutagen",
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Gauntlet / Bracer"
+        ],
+        "ingredients": [
+          "Alchemical Salts",
+          "Venom Sac"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival"
+        ],
+        "dc": 16,
+        "risk": "Low"
+      },
+      {
+        "id": "cmp_corrosives",
+        "name": "Corrosive Mixtures",
+        "icon": "☣",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 27,
+        "y": 20,
+        "tier": "I",
+        "type": "Acid Family",
+        "effect": "Acid, corrosion, armor damage, object damage, equipment sabotage, and K’lor-inspired acid bases.",
+        "unlocks": [
+          "Acid Flask",
+          "Corrosive Oil",
+          "Armor-Eating Paste",
+          "Lock-Melting Gel",
+          "K’lor Slug-Inspired Acid Base"
+        ],
+        "compatible": [
+          "Bomb",
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Gauntlet / Bracer"
+        ],
+        "ingredients": [
+          "Acid Vial",
+          "Alchemical Salts"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "cmp_toxicology"
+        ]
+      },
+      {
+        "id": "cmp_vapors",
+        "name": "Battlefield Vapors",
+        "icon": "⬢",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 73,
+        "y": 20,
+        "tier": "I",
+        "type": "Vapor Family",
+        "effect": "Smoke, concealment, irritation, fear, confusion, and battlefield control.",
+        "unlocks": [
+          "Smoke Bomb",
+          "Choking Vapor",
+          "Eye-Burning Mist",
+          "Fear-Smoke Primer",
+          "Hallucinogenic Dust"
+        ],
+        "compatible": [
+          "Bomb"
+        ],
+        "ingredients": [
+          "Smoke Powder",
+          "Medical Chemicals"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "cmp_toxicology"
+        ]
+      },
+      {
+        "id": "cmp_oils",
+        "name": "Weapon Oils and Coatings",
+        "icon": "🜂",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 27,
+        "y": 33,
+        "tier": "I",
+        "type": "Weapon Coating Family",
+        "effect": "Temporary blade and weapon coatings that apply venom, acid, numbing, blood slicks, or burning resin.",
+        "unlocks": [
+          "Venom Oil",
+          "Blood Slick",
+          "Burning Resin",
+          "Numbing Blade Coat",
+          "Acid Film"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Weapon"
+        ],
+        "ingredients": [
+          "Carrion Oil",
+          "Venom Sac"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "cmp_toxicology"
+        ]
+      },
+      {
+        "id": "cmp_stimulants",
+        "name": "Combat Stimulants",
+        "icon": "☉",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 73,
+        "y": 33,
+        "tier": "I",
+        "type": "Combat Drug Family",
+        "effect": "Short bursts of aggression, pain tolerance, speed, wakefulness, or focus with physical and emotional costs.",
+        "unlocks": [
+          "Painkiller Injection",
+          "Rage Stimulant",
+          "Wakefulness Draught",
+          "Adrenal Spike",
+          "Nerve-Burning Focus Dose"
+        ],
+        "compatible": [
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Adrenal Fluid",
+          "Medical Chemicals"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "cmp_toxicology"
+        ]
+      },
+      {
+        "id": "cmp_paralytic",
+        "name": "Paralytic Venomcraft",
+        "icon": "☷",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 18,
+        "y": 47,
+        "tier": "II",
+        "type": "Paralytic Family",
+        "effect": "Paralysis, slowing, muscle lock, limb failure, and nerve-locking chemistry.",
+        "unlocks": [
+          "Nerve-Lock Venom",
+          "Muscle-Seizing Oil",
+          "Stun Vapor",
+          "Paralytic Injector",
+          "Crippling Blade Coating"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Bomb",
+          "Mutagen",
+          "Gauntlet / Bracer"
+        ],
+        "ingredients": [
+          "Preserved Nerve Tissue",
+          "Paralytic Venom"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "cmp_toxicology"
+        ]
+      },
+      {
+        "id": "cmp_cruel_acids",
+        "name": "Cruel Acids",
+        "icon": "☠",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 35,
+        "y": 48,
+        "tier": "II",
+        "type": "Advanced Acid Family",
+        "effect": "Stronger corrosion, organic tissue damage, armor weakening, droid corrosion, and biological acid carriers.",
+        "unlocks": [
+          "Bone-Eating Acid",
+          "K’lor Bile Reserve",
+          "Droid-Corrosion Flask",
+          "Armor-Burn Gel",
+          "Acidic Blood Mixture"
+        ],
+        "compatible": [
+          "Bomb",
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Mutagen"
+        ],
+        "ingredients": [
+          "K’lor’slug Matron Bile",
+          "Acid Vial"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "cmp_corrosives"
+        ]
+      },
+      {
+        "id": "cmp_fear_hallucination",
+        "name": "Fear and Hallucination Compounds",
+        "icon": "☽",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 65,
+        "y": 48,
+        "tier": "II",
+        "type": "Fear Compound Family",
+        "effect": "Fear, hallucination, panic, sensory distortion, emotional warfare, and morale collapse.",
+        "unlocks": [
+          "Fear Vapor",
+          "Dread Mist",
+          "Nightmare Powder",
+          "Panic Injector",
+          "Hallucination Cloud"
+        ],
+        "compatible": [
+          "Bomb",
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Crystallized Fear Residue",
+          "Smoke Powder"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Treat Injury"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "cmp_vapors"
+        ]
+      },
+      {
+        "id": "cmp_grenadier",
+        "name": "Alchemical Grenadier",
+        "icon": "⬣",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 82,
+        "y": 47,
+        "tier": "II",
+        "type": "Bomb Family",
+        "effect": "Thrown battlefield alchemy: acid bombs, fear grenades, venom capsules, smoke-needles, and flesh-burning flasks.",
+        "unlocks": [
+          "Acid Bomb",
+          "Fear Grenade",
+          "Venom Burst Capsule",
+          "Smoke-Needle Bomb",
+          "Flesh-Burning Flask"
+        ],
+        "compatible": [
+          "Bomb"
+        ],
+        "ingredients": [
+          "Smoke Powder",
+          "Tool Parts"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "cmp_vapors"
+        ]
+      },
+      {
+        "id": "cmp_beast_blood",
+        "name": "Beast-Blood Stabilization",
+        "icon": "🧬",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 50,
+        "y": 61,
+        "tier": "II",
+        "type": "Mutagen Foundation",
+        "effect": "Turns beast organs, blood, glands, and venom into temporary personal mutagens. Needs Beast Shaping for true beast transformations.",
+        "unlocks": [
+          "Beast Blood Base",
+          "Stabilized Organ Extract",
+          "Mutagen Suspension",
+          "Controlled Transformation Dose",
+          "Emergency Antimutagen"
+        ],
+        "compatible": [
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Tuk’ata Blood",
+          "Alchemical Salts"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore",
+          "Survival"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "cmp_toxicology",
+          "cmp_stimulants"
+        ]
+      },
+      {
+        "id": "cmp_beast_mutagens",
+        "name": "Sith Beast Mutagens",
+        "icon": "♞",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 32,
+        "y": 74,
+        "tier": "III",
+        "type": "Cross-Tree Beast Mutagens",
+        "effect": "True temporary body mutation based on Sith or dark creature biology: invisibility, acid spit, claws, senses, rage, shells, and more.",
+        "unlocks": [
+          "Hssiss Shadow Blood Serum",
+          "K’lor Acid Gland Mutagen",
+          "Tuk’ata Predator Serum",
+          "Shyrack Echolocation Draught",
+          "Terentatek Rage Mutagen",
+          "Rakghoul Plague Suspension",
+          "Orbalisk Pain-Shell Serum"
+        ],
+        "compatible": [
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Hssiss Shadow Gland",
+          "K’lor’slug Matron Bile"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore",
+          "Survival",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "cmp_beast_blood"
+        ],
+        "requiresNodes": [
+          "bst_trait"
+        ]
+      },
+      {
+        "id": "cmp_anti_force",
+        "name": "Anti-Force Compounds",
+        "icon": "✦",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 68,
+        "y": 74,
+        "tier": "III",
+        "type": "Anti-Force Chemistry",
+        "effect": "Disrupts concentration, Force focus, meditation, Force detection, or Force-sensitive control. Pressures Force users but does not automatically shut them down.",
+        "unlocks": [
+          "Force-Sickening Vapor",
+          "Focus-Disrupting Injection",
+          "Midichlorian Agony Serum",
+          "Meditation-Breaking Powder",
+          "Force-Sense Static Grenade"
+        ],
+        "compatible": [
+          "Bomb",
+          "Mutagen",
+          "Relic"
+        ],
+        "ingredients": [
+          "Force-Wound Residue",
+          "Cracked Kyber Dust"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Treat Injury",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "cmp_fear_hallucination"
+        ]
+      },
+      {
+        "id": "cmp_disease",
+        "name": "Living Disease Cultures",
+        "icon": "☣",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 18,
+        "y": 84,
+        "tier": "III",
+        "type": "Disease Culture",
+        "effect": "Controlled infections, plague capsules, rotting blood cultures, and abomination infection bases. GM approval recommended if spreadable.",
+        "unlocks": [
+          "Weak Rakghoul-Derived Plague Sample",
+          "Rotting Blood Culture",
+          "Flesh-Fever Capsule",
+          "Nerve-Spoil Disease",
+          "Controlled Infection Flask"
+        ],
+        "compatible": [
+          "Bomb",
+          "Mutagen",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Rakghoul Plague Blood",
+          "Medical Chemicals"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "cmp_toxicology"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "cmp_combat_mutagen",
+        "name": "Perfected Combat Mutagen",
+        "icon": "☉",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 82,
+        "y": 84,
+        "tier": "III",
+        "type": "Combat Mutagen",
+        "effect": "Non-specific combat mutation: claws, hardened skin, pain resistance, speed, venom blood, or strength surges.",
+        "unlocks": [
+          "Rage Titan Dose",
+          "Pain-Eater Serum",
+          "Predator Reflex Injection",
+          "Bone-Hardening Draught",
+          "Venom-Blood Elixir"
+        ],
+        "compatible": [
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Adrenal Marrow",
+          "Pain Essence"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "cmp_stimulants",
+          "cmp_beast_blood"
+        ]
+      },
+      {
+        "id": "cmp_black_crucible",
+        "name": "Black Crucible Formulae",
+        "icon": "⚗",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 34,
+        "y": 94,
+        "tier": "IV",
+        "type": "Masterwork Compounds",
+        "effect": "Masterwork battlefield alchemy: perfected venom, fear clouds, war gas, flesh-melting bombs, and true beastform catalysts.",
+        "unlocks": [
+          "Perfected Sith Venom",
+          "Masterwork Fear Cloud",
+          "Dark Side War Gas",
+          "Flesh-Melting Bomb",
+          "Blood-Memory Serum",
+          "True Beastform Catalyst"
+        ],
+        "compatible": [
+          "Bomb",
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Unique Catalyst",
+          "Pain-Distilled Serum"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Treat Injury",
+          "Use the Force"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "cmp_beast_mutagens",
+          "cmp_anti_force"
+        ],
+        "gate": "story"
+      },
+      {
+        "id": "cmp_true_feral",
+        "name": "True Feral Transformation",
+        "icon": "🐺",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 66,
+        "y": 94,
+        "tier": "IV",
+        "type": "Greater Beastform",
+        "effect": "Temporary were-beast style Sith beast forms: Hssiss Shadow Form, Tuk’ata War Form, K’lor Acid Horror, Terentatek Rage, and more.",
+        "unlocks": [
+          "Hssiss Shadow Form",
+          "Tuk’ata War Form",
+          "K’lor Acid Horror Form",
+          "Terentatek Rage Form",
+          "Shyrack Nightstalker Form",
+          "Rancor Blood-Might Form"
+        ],
+        "compatible": [
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Unique Beast Heart",
+          "Dark Nexus Crystal"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "cmp_beast_mutagens",
+          "cmp_combat_mutagen"
+        ],
+        "requiresNodes": [
+          "bst_mutagen_compat"
+        ],
+        "gate": "gm"
+      }
+    ],
+    "family": "starting",
+    "accessLabel": "Starting Tree",
+    "accent": "#6edc8f",
+    "order": 2
+  },
+  "ritual_tools": {
+    "name": "Ritual Tools",
+    "icon": "⌬",
+    "colorClass": "blueish",
+    "tier": "Tier I-IV",
+    "progress": "0/18",
+    "description": "Field kits, staffs, binding tools, vats, dark forges, surgical frames, spirit anchors, labs, and containment systems.",
+    "nodes": [
+      {
+        "id": "tool_field_kit",
+        "name": "Alchemist’s Field Kit",
+        "icon": "✦",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 50,
+        "y": 6,
+        "tier": "I",
+        "type": "Field Tool",
+        "effect": "Allows safe Tier I field alchemy: minor compounds, harvesting, preservation, repairs, and emergency stabilization.",
+        "unlocks": [
+          "Alchemical Field Kit",
+          "Portable Reagent Case",
+          "Blood-Sealed Vial Rack",
+          "Venom Handling Tools",
+          "Bone Scraper",
+          "Emergency Stabilizer"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Bomb",
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Tool Parts",
+          "Medical Chemicals"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 16,
+        "risk": "Low"
+      },
+      {
+        "id": "tool_focus_impl",
+        "name": "Ritual Focus Implements",
+        "icon": "☽",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 28,
+        "y": 18,
+        "tier": "I",
+        "type": "Focus Tool",
+        "effect": "Basic tools used to write, carve, etch, mark, or bind Sith Alchemy into objects or subjects.",
+        "unlocks": [
+          "Ritual Knife",
+          "Blood Stylus",
+          "Rune Needle",
+          "Etching Chisel",
+          "Bone Compass",
+          "Pain Candle"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Relic",
+          "Melee Weapon"
+        ],
+        "ingredients": [
+          "Ritual Ink",
+          "Bone Shard"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Mechanics"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "tool_field_kit"
+        ]
+      },
+      {
+        "id": "tool_binding",
+        "name": "Binding Implements",
+        "icon": "⛓",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 72,
+        "y": 18,
+        "tier": "I",
+        "type": "Binding Tool",
+        "effect": "Chains, spikes, hooks, collars, and rings for living subjects, beasts, prisoners, and unstable creations.",
+        "unlocks": [
+          "Binding Chain",
+          "Restraint Spike",
+          "Blood Lock",
+          "Pain Hook",
+          "Obedience Ring",
+          "Creature Muzzle"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Creature",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Sith Metal Chain",
+          "Pain Essence"
+        ],
+        "checks": [
+          "Mechanics",
+          "Persuasion",
+          "Treat Injury"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "tool_field_kit"
+        ]
+      },
+      {
+        "id": "tool_workshop_calibration",
+        "name": "Workshop Calibration",
+        "icon": "⚙",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 28,
+        "y": 31,
+        "tier": "I",
+        "type": "Workshop Method",
+        "effect": "Improves reliability of the alchemist’s current workspace and reduces minor crafting risk.",
+        "unlocks": [
+          "Reagent Sorting",
+          "Heat Calibration",
+          "Pressure Sealing",
+          "Containment Marking",
+          "Tool Sterilization",
+          "Dark Side Alignment Check"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Tool Parts",
+          "Alchemical Salts"
+        ],
+        "checks": [
+          "Mechanics",
+          "Knowledge: Technology"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "tool_field_kit"
+        ]
+      },
+      {
+        "id": "tool_formula_archive",
+        "name": "Formula Archive",
+        "icon": "▤",
+        "cost": 1,
+        "rankMax": 1,
+        "x": 72,
+        "y": 31,
+        "tier": "I",
+        "type": "Research Tool",
+        "effect": "Recipe indexing, ingredient cross-reference, failure notes, experimental margins, and known formula tracking.",
+        "unlocks": [
+          "Recipe Index",
+          "Ingredient Cross-Reference",
+          "Failure Notes",
+          "Experimental Margins",
+          "Alchemical Recordkeeping"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Data Crystal",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Use Computer",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "tool_field_kit"
+        ]
+      },
+      {
+        "id": "tool_sith_workshop",
+        "name": "Sith Workshop Design",
+        "icon": "▣",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 28,
+        "y": 45,
+        "tier": "II",
+        "type": "Workshop Upgrade",
+        "effect": "Build or upgrade a proper Sith workshop for permanent, dangerous, and higher-tier creations.",
+        "unlocks": [
+          "Sith Workshop Upgrade",
+          "Blood-Reagent Table",
+          "Dark Forge Bench",
+          "Sealed Ingredient Cabinet",
+          "Alchemical Cooling Rack",
+          "Ritual Vent System"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Power Core",
+          "Tool Parts"
+        ],
+        "checks": [
+          "Mechanics",
+          "Knowledge: Technology"
+        ],
+        "dc": 20,
+        "risk": "Low",
+        "prereq": [
+          "tool_workshop_calibration"
+        ]
+      },
+      {
+        "id": "tool_ritual_staff",
+        "name": "Ritual Staff Construction",
+        "icon": "⚚",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 72,
+        "y": 45,
+        "tier": "II",
+        "type": "Staff Tool",
+        "effect": "Craft basic ritual staffs, binding staffs, reagent staffs, blood-channeling staffs, and control rods.",
+        "unlocks": [
+          "Lesser Alchemist Staff",
+          "Binding Staff",
+          "Reagent Staff",
+          "Blood-Channeling Staff",
+          "Control Rod"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Black Alchemical Staff Frame",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Mechanics",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "tool_focus_impl"
+        ]
+      },
+      {
+        "id": "tool_mutation_vat",
+        "name": "Mutation Vat Frame",
+        "icon": "🧬",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 18,
+        "y": 57,
+        "tier": "II",
+        "type": "Biological Tool",
+        "effect": "Controlled biological alteration, organ stabilization, tissue suspension, beast serum infusion, and flesh treatment.",
+        "unlocks": [
+          "Basic Mutation Vat",
+          "Tissue Suspension Tank",
+          "Organ Stabilizer",
+          "Beast Serum Infusion Chamber",
+          "Flesh Treatment Bath"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Creature",
+          "Mutagen",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Ancient Lab Vat Fluid",
+          "Power Core"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "tool_sith_workshop"
+        ]
+      },
+      {
+        "id": "tool_spirit_anchor",
+        "name": "Spirit Anchor Frame",
+        "icon": "◉",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 50,
+        "y": 58,
+        "tier": "II",
+        "type": "Spirit Tool",
+        "effect": "Contain spirit residue, Force echoes, haunted materials, soul fragments, and unstable metaphysical ingredients.",
+        "unlocks": [
+          "Echo Jar",
+          "Spirit Chain",
+          "Soul Hook",
+          "Haunted Crystal Frame",
+          "Force-Echo Cage"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Relic"
+        ],
+        "ingredients": [
+          "Ghost-Touched Ash",
+          "Low-Grade Kyber Splinter"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "tool_focus_impl"
+        ]
+      },
+      {
+        "id": "tool_beast_station",
+        "name": "Beast Handling Station",
+        "icon": "♞",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 82,
+        "y": 57,
+        "tier": "II",
+        "type": "Beast Tool",
+        "effect": "Safer cages, feeding channels, scent-lock pens, pain command posts, and shock restraint frames.",
+        "unlocks": [
+          "Reinforced Beast Cage",
+          "Feeding Channel",
+          "Scent-Lock Pen",
+          "Pain Command Post",
+          "Shock Restraint Frame"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Creature"
+        ],
+        "ingredients": [
+          "Sith Metal Chain",
+          "Tool Parts"
+        ],
+        "checks": [
+          "Survival",
+          "Mechanics"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "tool_binding"
+        ]
+      },
+      {
+        "id": "tool_dark_forge",
+        "name": "Dark Forge Crucible",
+        "icon": "♨",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 20,
+        "y": 72,
+        "tier": "III",
+        "type": "Forge Tool",
+        "effect": "Stronger Sith Artifice projects, Sith metal furnaces, crystal corruption chambers, and weapon soul-etching frames.",
+        "unlocks": [
+          "Dark Forge",
+          "Blood-Tempering Crucible",
+          "Sith Metal Furnace",
+          "Crystal Corruption Chamber",
+          "Weapon Soul-Etching Frame"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Weapon",
+          "Armor",
+          "Relic"
+        ],
+        "ingredients": [
+          "Ancient Sith Forge Coal",
+          "Power Core"
+        ],
+        "checks": [
+          "Mechanics",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "tool_sith_workshop",
+          "tool_focus_impl"
+        ]
+      },
+      {
+        "id": "tool_surgical_crucible",
+        "name": "Surgical Crucible",
+        "icon": "✚",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 40,
+        "y": 74,
+        "tier": "III",
+        "type": "Surgical Tool",
+        "effect": "Advanced surgery, graft stabilization, nerve stitching, organ replacement, flesh clamps, and living armor interfaces.",
+        "unlocks": [
+          "Sith Surgical Frame",
+          "Nerve Stitch Rig",
+          "Organ Replacement Table",
+          "Graft Stabilizer",
+          "Flesh-Sealing Clamp Array"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Creature",
+          "Abomination",
+          "Armor"
+        ],
+        "ingredients": [
+          "Living Organ",
+          "Medical Chemicals"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "tool_mutation_vat",
+          "tool_binding"
+        ]
+      },
+      {
+        "id": "tool_staff_restoration",
+        "name": "Staff Restoration Rites",
+        "icon": "⚚",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 60,
+        "y": 74,
+        "tier": "III",
+        "type": "Staff Restoration",
+        "effect": "Restore, awaken, rebind, or extract memories from dormant ancient Sith staffs, including Tulak Hord tomb staff progression.",
+        "unlocks": [
+          "Restore Dormant Staff",
+          "Awaken Ancient Staff",
+          "Repair Sith Control Focus",
+          "Rebind Staff Core",
+          "Staff Memory Extraction"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Ancient Sith Bone",
+          "Black Kyber Focus"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "tool_ritual_staff",
+          "tool_spirit_anchor"
+        ]
+      },
+      {
+        "id": "tool_nexus_array",
+        "name": "Nexus Conduit Array",
+        "icon": "△",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 80,
+        "y": 72,
+        "tier": "III",
+        "type": "Nexus Tool",
+        "effect": "Draw on dark side nexuses, tombs, ruins, and Force pressure to empower high-risk rituals.",
+        "unlocks": [
+          "Dark Nexus Collector",
+          "Force Pressure Valve",
+          "Ritual Energy Conduit",
+          "Dark Side Battery",
+          "Nexus Exposure Chamber"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Relic"
+        ],
+        "ingredients": [
+          "Dark Nexus Soil",
+          "Power Core"
+        ],
+        "checks": [
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "tool_sith_workshop"
+        ]
+      },
+      {
+        "id": "tool_holocron_tools",
+        "name": "Holocron Interface Tools",
+        "icon": "▧",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 50,
+        "y": 84,
+        "tier": "III",
+        "type": "Research Interface",
+        "effect": "Safer study of Sith holocrons, tomb recordings, hostile archives, hidden formulae, and alchemical lessons.",
+        "unlocks": [
+          "Holocron Reader Frame",
+          "Sith Glyph Decoder",
+          "Memory Spike",
+          "Archive Lens",
+          "Lesson Extraction Ritual"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Data Crystal",
+          "Low-Grade Kyber Splinter"
+        ],
+        "checks": [
+          "Use Computer",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "tool_formula_archive",
+          "tool_focus_impl"
+        ]
+      },
+      {
+        "id": "tool_ancient_lab",
+        "name": "Ancient Sith Laboratory Reconstruction",
+        "icon": "▦",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 25,
+        "y": 94,
+        "tier": "IV",
+        "type": "Ancient Laboratory",
+        "effect": "Restore or build ancient-level Sith laboratories, tomb labs, multi-ritual chambers, and forbidden research vaults.",
+        "unlocks": [
+          "Ancient Sith Laboratory",
+          "Tomb Laboratory Restoration",
+          "Multi-Ritual Chamber",
+          "Alchemical War Room",
+          "Forbidden Research Vault"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Unique Catalyst",
+          "Ancient Lab Vat Fluid"
+        ],
+        "checks": [
+          "Mechanics",
+          "Knowledge: Technology",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "tool_dark_forge",
+          "tool_surgical_crucible"
+        ],
+        "gate": "story"
+      },
+      {
+        "id": "tool_grand_matrix",
+        "name": "Grand Ritual Matrix",
+        "icon": "✹",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 50,
+        "y": 95,
+        "tier": "IV",
+        "type": "Grand Ritual Tool",
+        "effect": "Makes impossible multi-tree, multi-stage, and story-level rituals possible. It does not make them safe.",
+        "unlocks": [
+          "Grand Circle",
+          "Multi-Stage Ritual Grid",
+          "Sacrificial Power Matrix",
+          "Dark Side Alignment Engine",
+          "Ritual Failure Containment System"
+        ],
+        "compatible": [
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Unique Catalyst",
+          "Dark Nexus Crystal"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "tool_nexus_array",
+          "tool_spirit_anchor",
+          "tool_dark_forge"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "tool_master_containment",
+        "name": "Master Containment System",
+        "icon": "⬢",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 75,
+        "y": 94,
+        "tier": "IV",
+        "type": "Containment Tool",
+        "effect": "Contain spirits, abominations, apex beasts, Force wounds, and catastrophic ritual failures.",
+        "unlocks": [
+          "Greater Spirit Cage",
+          "Abomination Lockdown Frame",
+          "Beast Containment Vault",
+          "Force-Wound Seal",
+          "Emergency Severance Engine"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Abomination",
+          "Creature",
+          "Relic"
+        ],
+        "ingredients": [
+          "Bound Spirit Shard",
+          "Sith Metal Chain"
+        ],
+        "checks": [
+          "Mechanics",
+          "Use the Force"
+        ],
+        "dc": 30,
+        "risk": "Severe",
+        "prereq": [
+          "tool_spirit_anchor",
+          "tool_binding",
+          "tool_sith_workshop"
+        ],
+        "gate": "gm"
+      }
+    ],
+    "family": "starting",
+    "accessLabel": "Starting Tree",
+    "accent": "#65c8ff",
+    "order": 3
+  },
+  "beast_shaping": {
+    "name": "Beast Shaping",
+    "icon": "♞",
+    "colorClass": "goldish",
+    "tier": "Locked",
+    "progress": "0/16",
+    "description": "Sith beasts, dark predators, trait extraction, rare dissections, obedience, mutations, and biological templates.",
+    "nodes": [
+      {
+        "id": "bst_lore",
+        "name": "Sith Beast Lore",
+        "icon": "✦",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 50,
+        "y": 7,
+        "tier": "I",
+        "type": "Creature Research",
+        "effect": "Study, dissect, identify, and map the traits, weaknesses, organs, and alchemical uses of Sith beasts and dark predators.",
+        "unlocks": [
+          "Rare Creature Study",
+          "Organ Identification",
+          "Trait Mapping",
+          "Beast Weakness Analysis",
+          "Alchemical Dissection"
+        ],
+        "compatible": [
+          "Creature",
+          "Mutagen",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Tuk’ata Blood",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Survival",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 16,
+        "risk": "Low"
+      },
+      {
+        "id": "bst_trait",
+        "name": "Trait Extraction",
+        "icon": "🧬",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 50,
+        "y": 20,
+        "tier": "I",
+        "type": "Trait Extraction",
+        "effect": "Extract useful biological traits from dissected creatures: claws, venom, hide, scent, acid, shadow, wing, rage, and more.",
+        "unlocks": [
+          "Claw Trait",
+          "Venom Trait",
+          "Hide Trait",
+          "Scent Trait",
+          "Adrenal Trait",
+          "Acid Trait",
+          "Shadow Trait",
+          "Wing Trait",
+          "Rage Trait"
+        ],
+        "compatible": [
+          "Creature",
+          "Mutagen",
+          "Weapon",
+          "Armor"
+        ],
+        "ingredients": [
+          "Rare Creature Organ",
+          "Alchemical Salts"
+        ],
+        "checks": [
+          "Survival",
+          "Treat Injury",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "bst_lore"
+        ]
+      },
+      {
+        "id": "bst_obedience",
+        "name": "Obedience Conditioning",
+        "icon": "⛓",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 25,
+        "y": 31,
+        "tier": "I",
+        "type": "Creature Control",
+        "effect": "Fear conditioning, feeding bonds, pain commands, scent marks, and dominance rituals. Reduces instability but does not guarantee loyalty.",
+        "unlocks": [
+          "Fear Conditioning",
+          "Feeding Bond",
+          "Pain Command",
+          "Scent Mark",
+          "Dominance Ritual"
+        ],
+        "compatible": [
+          "Creature"
+        ],
+        "ingredients": [
+          "Pain Essence",
+          "Raw Meat"
+        ],
+        "checks": [
+          "Persuasion",
+          "Survival",
+          "Use the Force"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "bst_lore"
+        ]
+      },
+      {
+        "id": "bst_minor_mutation",
+        "name": "Minor Beast Mutation",
+        "icon": "☣",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 75,
+        "y": 31,
+        "tier": "I",
+        "type": "Minor Mutation",
+        "effect": "Adds one minor physical trait to a living creature: claws, hide, scent, venom, night eyes, or aggressive growth.",
+        "unlocks": [
+          "Sharpened Claws",
+          "Hardened Hide",
+          "Enhanced Scent",
+          "Venomous Bite",
+          "Night Eyes",
+          "Aggressive Growth"
+        ],
+        "compatible": [
+          "Creature"
+        ],
+        "ingredients": [
+          "Rare Creature Organ",
+          "Medical Chemicals"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "bst_trait"
+        ]
+      },
+      {
+        "id": "bst_handling",
+        "name": "Beast Handling Implements",
+        "icon": "⚙",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 50,
+        "y": 40,
+        "tier": "I",
+        "type": "Handling Tool",
+        "effect": "Scent chains, feeding hooks, pain whistles, collars, and ritual muzzles for safer transport and command.",
+        "unlocks": [
+          "Scent Chain",
+          "Feeding Hook",
+          "Pain Whistle",
+          "Beast Collar",
+          "Ritual Muzzle"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Creature"
+        ],
+        "ingredients": [
+          "Sith Metal Chain",
+          "Tool Parts"
+        ],
+        "checks": [
+          "Mechanics",
+          "Survival"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "bst_lore"
+        ]
+      },
+      {
+        "id": "bst_predator",
+        "name": "Predator Template",
+        "icon": "⚔",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 18,
+        "y": 51,
+        "tier": "II",
+        "type": "Predator Template",
+        "effect": "Speed, claws, scent, pounce, tracking, pack tactics, and aggression drawn from tuk’ata, maalraas, vornskr, kath hounds, nexu, and more.",
+        "unlocks": [
+          "Tuk’ata Predator Traits",
+          "Maalraas Stalking Pattern",
+          "Vornskr Force-Hunter Scent",
+          "Kath Hound Pack Aggression",
+          "Nexu Pounce Reflex"
+        ],
+        "compatible": [
+          "Creature",
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Tuk’ata Alpha Fang",
+          "Adrenal Marrow"
+        ],
+        "checks": [
+          "Survival",
+          "Treat Injury"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "bst_minor_mutation"
+        ]
+      },
+      {
+        "id": "bst_venom_acid",
+        "name": "Venom and Acid Template",
+        "icon": "☣",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 35,
+        "y": 54,
+        "tier": "II",
+        "type": "Venom / Acid Template",
+        "effect": "Venom, poison, acid spit, corrosive blood, toxic bites, and glandular mutations.",
+        "unlocks": [
+          "K’lor Acid Gland",
+          "Kouhun Venom Sac",
+          "Kinrath Poison Pattern",
+          "Venom Fang Growth",
+          "Acid Blood Mutation"
+        ],
+        "compatible": [
+          "Creature",
+          "Mutagen",
+          "Weapon"
+        ],
+        "ingredients": [
+          "K’lor’slug Matron Bile",
+          "Venom Sac"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "bst_trait"
+        ]
+      },
+      {
+        "id": "bst_shadow",
+        "name": "Shadow and Stealth Template",
+        "icon": "☽",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 65,
+        "y": 54,
+        "tier": "II",
+        "type": "Shadow Template",
+        "effect": "Darkness, camouflage, ambush, cave hunting, light distortion, silent pads, and hssiss-style shadow traits.",
+        "unlocks": [
+          "Hssiss Shadow Cloak",
+          "Maalraas Optical Blur",
+          "Shyrack Dark-Cave Adaptation",
+          "Silent Predator Pads",
+          "Light-Drinking Skin"
+        ],
+        "compatible": [
+          "Creature",
+          "Mutagen",
+          "Armor"
+        ],
+        "ingredients": [
+          "Hssiss Shadow Gland",
+          "Camouflage Hide"
+        ],
+        "checks": [
+          "Survival",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "bst_trait"
+        ]
+      },
+      {
+        "id": "bst_hide_bone",
+        "name": "Dark Hide and Boneplate",
+        "icon": "⬟",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 82,
+        "y": 51,
+        "tier": "II",
+        "type": "Defense Template",
+        "effect": "Armor, toughness, muscle density, plating, skull masks, wraid headplates, terentatek tissue, and rancor muscle fiber.",
+        "unlocks": [
+          "Boneplate Growth",
+          "Scaled Hide",
+          "Rancor Muscle Fiber",
+          "Wraid Headplate Pattern",
+          "Terentatek Dense Tissue"
+        ],
+        "compatible": [
+          "Creature",
+          "Armor",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Armored Hide",
+          "Bone Plate"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "bst_minor_mutation"
+        ]
+      },
+      {
+        "id": "bst_lineage",
+        "name": "Sith Beast Lineage",
+        "icon": "♞",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 50,
+        "y": 64,
+        "tier": "II",
+        "type": "Species Specialization",
+        "effect": "Specialize in tuk’ata, hssiss, K’lor, shyrack, terentatek, or other rare lineages to make future work easier.",
+        "unlocks": [
+          "Tuk’ata Lineage Study",
+          "Hssiss Lineage Study",
+          "K’lor Brood Study",
+          "Shyrack Brood Study",
+          "Terentatek Ritual Beast Study"
+        ],
+        "compatible": [
+          "Creature",
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Lineage Sample",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Survival"
+        ],
+        "dc": 20,
+        "risk": "Moderate",
+        "prereq": [
+          "bst_lore",
+          "bst_obedience"
+        ]
+      },
+      {
+        "id": "bst_greater_mutation",
+        "name": "Greater Beast Mutation",
+        "icon": "✹",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 32,
+        "y": 76,
+        "tier": "III",
+        "type": "Greater Mutation",
+        "effect": "A living creature can hold multiple shaped traits, war beast growth, monstrous limbs, controlled frenzy, and organ integration.",
+        "unlocks": [
+          "Multi-Trait Mutation",
+          "War Beast Growth",
+          "Controlled Frenzy",
+          "Monstrous Limb Development",
+          "Beast Organ Integration"
+        ],
+        "compatible": [
+          "Creature"
+        ],
+        "ingredients": [
+          "Rare Creature Organ",
+          "Dark Nexus Tissue"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "bst_predator",
+          "bst_hide_bone"
+        ]
+      },
+      {
+        "id": "bst_force_hunter",
+        "name": "Force-Hunter Instinct",
+        "icon": "△",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 68,
+        "y": 76,
+        "tier": "III",
+        "type": "Anti-Force Predator",
+        "effect": "Hunting Force-sensitive targets, sensing Force prey, snarling through meditation, and anti-Jedi aggression.",
+        "unlocks": [
+          "Force-Scent",
+          "Force-Sensitive Prey Drive",
+          "Meditation Disruption Snarl",
+          "Force-Hunter Reflex",
+          "Anti-Jedi Aggression"
+        ],
+        "compatible": [
+          "Creature",
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Terentatek Marrow",
+          "Vornskr Force-Scent Organ"
+        ],
+        "checks": [
+          "Survival",
+          "Use the Force",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "bst_predator"
+        ]
+      },
+      {
+        "id": "bst_mutagen_compat",
+        "name": "Sith Beast Mutagen Compatibility",
+        "icon": "⚗",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 50,
+        "y": 84,
+        "tier": "III",
+        "type": "Cross-Tree Mutagen Support",
+        "effect": "Stabilizes true beast mutagens created through Dark Compounds and unlocks Hssiss, K’lor, Tuk’ata, Shyrack, Terentatek, and Rancor formulas.",
+        "unlocks": [
+          "Hssiss Serum Compatibility",
+          "K’lor Mutagen Compatibility",
+          "Tuk’ata Serum Compatibility",
+          "Shyrack Draught Compatibility",
+          "Terentatek Mutagen Compatibility",
+          "Rancor Serum Compatibility"
+        ],
+        "compatible": [
+          "Mutagen"
+        ],
+        "ingredients": [
+          "Stabilized Organ Extract",
+          "Alchemical Salts"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "bst_trait",
+          "bst_shadow"
+        ],
+        "requiresNodes": [
+          "cmp_beast_blood"
+        ]
+      },
+      {
+        "id": "bst_controlled_evolution",
+        "name": "Controlled Beast Evolution",
+        "icon": "⛓",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 82,
+        "y": 84,
+        "tier": "III",
+        "type": "Creature Stability",
+        "effect": "Improves reliability, loyalty reinforcement, battle conditioning, controlled growth, pack bonding, and dark side dependency.",
+        "unlocks": [
+          "Loyalty Reinforcement",
+          "Battle Conditioning",
+          "Controlled Growth",
+          "Pack Bonding",
+          "Dark Side Dependency"
+        ],
+        "compatible": [
+          "Creature"
+        ],
+        "ingredients": [
+          "Pain Essence",
+          "Raw Meat"
+        ],
+        "checks": [
+          "Survival",
+          "Persuasion",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "bst_greater_mutation",
+          "bst_obedience"
+        ]
+      },
+      {
+        "id": "bst_apex_template",
+        "name": "Apex Sith Beast Template",
+        "icon": "☠",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 33,
+        "y": 94,
+        "tier": "IV",
+        "type": "Apex Beast",
+        "effect": "Creates or upgrades major apex Sith beast variants. Counts as major creation and controlled creature.",
+        "unlocks": [
+          "Apex Tuk’ata",
+          "Elder Hssiss Shade",
+          "K’lor Acid Matron Spawn",
+          "Shyrack Night Brood",
+          "Terentatek-Blooded Horror",
+          "Rancor-Sithblood Hybrid"
+        ],
+        "compatible": [
+          "Creature"
+        ],
+        "ingredients": [
+          "Unique Beast Heart",
+          "Dark Nexus Crystal"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival",
+          "Use the Force"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "bst_greater_mutation",
+          "bst_force_hunter",
+          "bst_controlled_evolution"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "bst_feral_mastery",
+        "name": "Feral Beastform Mastery",
+        "icon": "🐺",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 67,
+        "y": 94,
+        "tier": "IV",
+        "type": "Greater Beastform Support",
+        "effect": "Improves safety and control of high-tier beast transformations such as Hssiss Shadow Form or Terentatek Rage Form.",
+        "unlocks": [
+          "Stable Hssiss Shadow Form",
+          "Stable Tuk’ata War Form",
+          "Stable K’lor Acid Horror Form",
+          "Stable Shyrack Nightstalker Form",
+          "Stable Terentatek Rage Form"
+        ],
+        "compatible": [
+          "Mutagen"
+        ],
+        "ingredients": [
+          "True Beastform Catalyst",
+          "Unique Beast Heart"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "bst_mutagen_compat",
+          "bst_greater_mutation"
+        ],
+        "requiresNodes": [
+          "cmp_true_feral"
+        ],
+        "gate": "gm"
+      }
+    ],
+    "family": "advanced",
+    "accessLabel": "Advanced Unlock",
+    "accent": "#d9ae42",
+    "order": 4,
+    "unlockSummary": "Dissect three rare Sith-type apex specimens."
+  },
+  "spirit_anomaly": {
+    "name": "Spirit & Force-Anomaly",
+    "icon": "◉",
+    "colorClass": "purpleish",
+    "tier": "Locked",
+    "progress": "0/19",
+    "description": "Sith ghosts, Force echoes, haunted relics, soul anchors, ghost-piercing, Force wounds, and anti-Force devices.",
+    "nodes": [
+      {
+        "id": "spi_metaphysics",
+        "name": "Sith Metaphysics",
+        "icon": "✦",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 50,
+        "y": 6,
+        "tier": "I",
+        "type": "Spirit Theory",
+        "effect": "Identify spiritual residue, haunted materials, Force echoes, dark side scars, and metaphysical contamination.",
+        "unlocks": [
+          "Spirit Theory",
+          "Force Echo Recognition",
+          "Soul Residue Identification",
+          "Dark Side Scar Study",
+          "Haunted Object Analysis"
+        ],
+        "compatible": [
+          "Relic",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Ghost-Touched Ash",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 16,
+        "risk": "Moderate"
+      },
+      {
+        "id": "spi_echo_handling",
+        "name": "Echo Handling",
+        "icon": "☽",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 30,
+        "y": 18,
+        "tier": "I",
+        "type": "Echo Handling",
+        "effect": "Collect and store weak Force echoes or spiritual residue such as memory ash, fear stains, and death-scream traces.",
+        "unlocks": [
+          "Echo Dust",
+          "Memory Ash",
+          "Grief Residue",
+          "Fear Stain",
+          "Death-Scream Trace"
+        ],
+        "compatible": [
+          "Relic",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Ghost-Touched Ash",
+          "Spirit Jar"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "spi_metaphysics"
+        ]
+      },
+      {
+        "id": "spi_wards",
+        "name": "Spirit Warding Marks",
+        "icon": "⬢",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 70,
+        "y": 18,
+        "tier": "I",
+        "type": "Spirit Ward",
+        "effect": "Minor wards that warn of, slow, or resist weak spiritual interference. They do not stop powerful spirits.",
+        "unlocks": [
+          "Minor Ward Rune",
+          "Ghost Warning Sigil",
+          "Echo Barrier Mark",
+          "Dead-Speech Seal",
+          "Tomb-Safe Mark"
+        ],
+        "compatible": [
+          "Relic",
+          "Armor",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Ritual Ink",
+          "Alchemical Salts"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "spi_metaphysics"
+        ]
+      },
+      {
+        "id": "spi_haunted_talismanry",
+        "name": "Haunted Talismanry",
+        "icon": "◎",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 30,
+        "y": 32,
+        "tier": "I",
+        "type": "Haunted Relics",
+        "effect": "Small talismans that react to spirits, fear, death, or dark side residue.",
+        "unlocks": [
+          "Whisper Charm",
+          "Cold Warning Talisman",
+          "Death-Echo Bead",
+          "Fear-Resonance Amulet",
+          "Memory-Bone Charm"
+        ],
+        "compatible": [
+          "Relic",
+          "Mask / Helmet"
+        ],
+        "ingredients": [
+          "Memory Ash",
+          "Low-Grade Kyber Splinter"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "spi_echo_handling"
+        ]
+      },
+      {
+        "id": "spi_static_primer",
+        "name": "Force Static Primer",
+        "icon": "△",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 70,
+        "y": 32,
+        "tier": "I",
+        "type": "Anti-Force Primer",
+        "effect": "Weak Force-disruptive materials that irritate concentration, meditation, or Force sensing.",
+        "unlocks": [
+          "Force Static Powder",
+          "Meditation Irritant",
+          "Focus-Splinter Dust",
+          "Sense-Clouding Smoke",
+          "Weak Force Distortion Charge"
+        ],
+        "compatible": [
+          "Bomb",
+          "Relic",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Cracked Kyber Dust",
+          "Smoke Powder"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Treat Injury"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "spi_metaphysics"
+        ]
+      },
+      {
+        "id": "spi_lures",
+        "name": "Spirit Lures and Bait",
+        "icon": "☠",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 18,
+        "y": 47,
+        "tier": "II",
+        "type": "Spirit Bait",
+        "effect": "Attracts weak spirits, Force echoes, or haunted presences. Attracting does not mean controlling.",
+        "unlocks": [
+          "Ghost Lure",
+          "Fear Candle",
+          "Memory Hook",
+          "Blood-Echo Bait",
+          "Mourning Bell"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Relic"
+        ],
+        "ingredients": [
+          "Blood of a Force-Sensitive",
+          "Ghost-Touched Ash"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "spi_echo_handling"
+        ]
+      },
+      {
+        "id": "spi_echo_anchors",
+        "name": "Echo Anchors",
+        "icon": "⛓",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 35,
+        "y": 50,
+        "tier": "II",
+        "type": "Echo Anchor",
+        "effect": "Binds a weak echo or memory to an item or location, creating useful haunted objects but not obedient ghosts.",
+        "unlocks": [
+          "Minor Soul Anchor",
+          "Memory Nail",
+          "Echo Stone",
+          "Death-Bound Ring",
+          "Tomb-Chain Charm"
+        ],
+        "compatible": [
+          "Relic",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Soul Ash",
+          "Sith Metal Chain"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "spi_haunted_talismanry"
+        ]
+      },
+      {
+        "id": "spi_ghost_primer",
+        "name": "Ghost-Piercing Primer",
+        "icon": "☽",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 50,
+        "y": 51,
+        "tier": "II",
+        "type": "Ghost Weapon Primer",
+        "effect": "Early temporary or weak ghost-touching effects for weapons, oils, talismans, and later Artifice ghost-piercing.",
+        "unlocks": [
+          "Ghost-Biting Etch",
+          "Spirit-Ash Coating",
+          "Soul-Resonant Edge Primer",
+          "Dead-Echo Weapon Oil",
+          "Phantom Burn Mark"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Relic"
+        ],
+        "ingredients": [
+          "Ghost-Touched Ash",
+          "Spirit Residue"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "spi_wards"
+        ]
+      },
+      {
+        "id": "spi_sense_distortion",
+        "name": "Force Sense Distortion",
+        "icon": "◌",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 65,
+        "y": 50,
+        "tier": "II",
+        "type": "Force-Sense Disruption",
+        "effect": "Blurs, distorts, or confuses Force sensing without making the user permanently undetectable.",
+        "unlocks": [
+          "Sense-Clouding Charm",
+          "Force-Scent Mask",
+          "Static Veil Powder",
+          "False Presence Bead",
+          "Meditation Breaker"
+        ],
+        "compatible": [
+          "Relic",
+          "Bomb",
+          "Armor"
+        ],
+        "ingredients": [
+          "Force-Null Tissue",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "spi_static_primer"
+        ]
+      },
+      {
+        "id": "spi_beacon",
+        "name": "Dark Side Beacon",
+        "icon": "✹",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 82,
+        "y": 47,
+        "tier": "II",
+        "type": "Dark Beacon",
+        "effect": "Calls, attracts, or marks things through dark side resonance: predators, spirits, Sithspawn, hunters, or enemies.",
+        "unlocks": [
+          "Fear Beacon",
+          "Blood Beacon",
+          "Spirit Signal",
+          "Tomb Pulse Marker",
+          "Dark Side Lure Mark"
+        ],
+        "compatible": [
+          "Relic",
+          "Ritual Tool",
+          "Bomb"
+        ],
+        "ingredients": [
+          "Dark Nexus Soil",
+          "Blood of a Force-Sensitive"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "spi_metaphysics"
+        ]
+      },
+      {
+        "id": "spi_spirit_binding",
+        "name": "Spirit Binding",
+        "icon": "◉",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 25,
+        "y": 67,
+        "tier": "III",
+        "type": "Spirit Binding",
+        "effect": "Bind weak spirits, echoes, or fragmented consciousness. Useful, unreliable, and dangerous.",
+        "unlocks": [
+          "Bind Weak Spirit",
+          "Chain Force Echo",
+          "Spirit Cage",
+          "Ghost-Bound Relic",
+          "Dead Apprentice’s Whisper"
+        ],
+        "compatible": [
+          "Relic",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Bound Spirit Shard",
+          "Ancient Sith Binding Chain"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Persuasion"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "spi_lures",
+          "spi_echo_anchors"
+        ]
+      },
+      {
+        "id": "spi_soul_anchor",
+        "name": "Soul Anchor",
+        "icon": "◆",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 45,
+        "y": 71,
+        "tier": "III",
+        "type": "Soul Anchor",
+        "effect": "Creates a stronger anchor capable of holding dangerous spirit residue, soul fragments, or bound echoes.",
+        "unlocks": [
+          "Greater Soul Anchor",
+          "Death Chain",
+          "Life-Tether Ring",
+          "Spirit Nail",
+          "Soul-Lock Crystal"
+        ],
+        "compatible": [
+          "Relic",
+          "Ritual Tool",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Soul Ash",
+          "Black Kyber Focus"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "spi_echo_anchors"
+        ]
+      },
+      {
+        "id": "spi_force_wound",
+        "name": "Force-Wound Studies",
+        "icon": "△",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 65,
+        "y": 71,
+        "tier": "III",
+        "type": "Force-Wound Research",
+        "effect": "Studies and harvests residue from violent Force events, scars, wounds, void pressure, and Force-bleed sites.",
+        "unlocks": [
+          "Force Scar Analysis",
+          "Pain Echo Collection",
+          "Wound Residue Harvesting",
+          "Void Pressure Reading",
+          "Force-Bleed Sample"
+        ],
+        "compatible": [
+          "Relic",
+          "Bomb",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Force-Wound Residue",
+          "Pain Essence"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "spi_static_primer",
+          "spi_metaphysics"
+        ]
+      },
+      {
+        "id": "spi_anti_force_relics",
+        "name": "Anti-Force Relicry",
+        "icon": "✦",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 82,
+        "y": 68,
+        "tier": "III",
+        "type": "Anti-Force Relic",
+        "effect": "Creates tools that weaken, disrupt, or pressure Force concentration, sensing, and focus.",
+        "unlocks": [
+          "Focus-Cracking Talisman",
+          "Meditation Breaker Ring",
+          "Force Static Generator",
+          "Sense-Blind Charm",
+          "Force-Sickening Relic"
+        ],
+        "compatible": [
+          "Relic",
+          "Bomb",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Force-Null Tissue",
+          "Cracked Kyber Dust"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "spi_sense_distortion",
+          "spi_static_primer"
+        ]
+      },
+      {
+        "id": "spi_haunted_weapon",
+        "name": "Haunted Weapon Communion",
+        "icon": "🗡",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 50,
+        "y": 82,
+        "tier": "III",
+        "type": "Haunted Weapon",
+        "effect": "Weapons carry echoes, memories, ghostly instincts, dead duelists, murder echoes, or phantom warnings.",
+        "unlocks": [
+          "Spirit-Listening Blade",
+          "Murder-Echo Weapon",
+          "Ghost-Hungry Edge",
+          "Dead Duelist’s Grip",
+          "Phantom Warning Hilt"
+        ],
+        "compatible": [
+          "Melee Weapon",
+          "Thrown Weapon",
+          "Lightsaber Hilt"
+        ],
+        "ingredients": [
+          "Ghost-Touched Ash",
+          "Named Object"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "spi_ghost_primer",
+          "spi_echo_anchors"
+        ]
+      },
+      {
+        "id": "spi_ghost_dominion",
+        "name": "Sith Ghost Dominion",
+        "icon": "☠",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 25,
+        "y": 94,
+        "tier": "IV",
+        "type": "Sith Ghost Binding",
+        "effect": "Bind, bargain with, or dominate powerful Sith ghosts. They never become simple obedient pets.",
+        "unlocks": [
+          "Bind Sith Ghost",
+          "Chain Tomb Lord Echo",
+          "Force Ghost Bargain",
+          "Ghost Advisor Relic",
+          "Dead Master’s Command Seal"
+        ],
+        "compatible": [
+          "Relic",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Bound Sith Ghost Fragment",
+          "Ancient Sith Bone"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Persuasion"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "spi_spirit_binding",
+          "spi_soul_anchor"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "spi_wound_engine",
+        "name": "Force-Wound Engine",
+        "icon": "✹",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 50,
+        "y": 94,
+        "tier": "IV",
+        "type": "Force-Wound Device",
+        "effect": "Imitates, channels, or weaponizes Force-wound residue. Story-level dangerous.",
+        "unlocks": [
+          "Force-Wound Generator",
+          "Void Scar Relic",
+          "Pain Vacuum Engine",
+          "Force-Bleed Device",
+          "Silence Field Prototype"
+        ],
+        "compatible": [
+          "Relic",
+          "Bomb",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Force-Wound Residue",
+          "Dark Nexus Crystal"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "spi_force_wound",
+          "spi_anti_force_relics"
+        ],
+        "gate": "story"
+      },
+      {
+        "id": "spi_soul_furnace",
+        "name": "Soul Furnace Binding",
+        "icon": "◈",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 68,
+        "y": 94,
+        "tier": "IV",
+        "type": "Soul Furnace",
+        "effect": "A bound spirit, echo, or soul fragment powers a major relic, armor, or abomination core.",
+        "unlocks": [
+          "Soul Furnace Core",
+          "Spirit-Fed Relic",
+          "Ghost-Powered Armor",
+          "Echo-Eating Vessel",
+          "Bound Soul Engine"
+        ],
+        "compatible": [
+          "Relic",
+          "Armor",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Bound Spirit Shard",
+          "Unique Catalyst"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "spi_soul_anchor",
+          "spi_spirit_binding"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "spi_anomaly_containment",
+        "name": "True Anomaly Containment",
+        "icon": "⬢",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 82,
+        "y": 86,
+        "tier": "IV",
+        "type": "Anomaly Containment",
+        "effect": "Contain, study, or temporarily control major Force anomalies. Containment is not ownership.",
+        "unlocks": [
+          "Contain Force-Anomaly",
+          "Seal Force Scar",
+          "Cage Dark Echo",
+          "Stabilize Haunted Nexus",
+          "Bind Reality-Thin Space"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Relic"
+        ],
+        "ingredients": [
+          "Force-Wound Residue",
+          "Master Containment Core"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "spi_force_wound",
+          "spi_spirit_binding",
+          "spi_anti_force_relics"
+        ],
+        "gate": "gm"
+      }
+    ],
+    "family": "advanced",
+    "accessLabel": "Advanced Unlock",
+    "accent": "#b47cff",
+    "order": 5,
+    "unlockSummary": "Study three ancient Sith alchemist holocrons or bind a Sith Force ghost."
+  },
+  "sith_abomination": {
+    "name": "Sith Abomination",
+    "icon": "☣",
+    "colorClass": "grayish",
+    "tier": "Locked",
+    "progress": "0/16",
+    "description": "Locked by the Abomination Staff. Flesh constructs, corpse-servitors, stitched horrors, organ engines, soul vessels, and true abominations.",
+    "nodes": [
+      {
+        "id": "abm_forbidden_anatomy",
+        "name": "Forbidden Anatomy",
+        "icon": "✦",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 50,
+        "y": 7,
+        "tier": "I",
+        "type": "Foundation",
+        "effect": "Prepare body parts, organs, bones, and tissue for abomination crafting. The foundation node for all abomination work.",
+        "unlocks": [
+          "Corpse Preparation",
+          "Organ Preservation",
+          "Flesh Stitching",
+          "Bone Locking",
+          "Nerve Threading"
+        ],
+        "compatible": [
+          "Abomination",
+          "Creature",
+          "Ritual Tool"
+        ],
+        "ingredients": [
+          "Living Organ",
+          "Medical Chemicals"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 16,
+        "risk": "Moderate"
+      },
+      {
+        "id": "abm_servitors",
+        "name": "Flesh-Stitched Servitors",
+        "icon": "☠",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 27,
+        "y": 20,
+        "tier": "I",
+        "type": "Minor Abomination",
+        "effect": "Small, weak, creepy utility constructs: crawling hands, corpse eyes, flesh drones, organ carriers, and bone-finger spies.",
+        "unlocks": [
+          "Crawling Hand Servitor",
+          "Bone-Finger Spy",
+          "Stitched Flesh Drone",
+          "Organ-Carrier Thrall",
+          "Corpse-Eye Watcher"
+        ],
+        "compatible": [
+          "Abomination"
+        ],
+        "ingredients": [
+          "Corpse Hand",
+          "Preserved Nerve Tissue"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics"
+        ],
+        "dc": 16,
+        "risk": "Moderate",
+        "prereq": [
+          "abm_forbidden_anatomy"
+        ]
+      },
+      {
+        "id": "abm_pain_brand",
+        "name": "Pain Obedience Brand",
+        "icon": "⛓",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 73,
+        "y": 20,
+        "tier": "I",
+        "type": "Control Brand",
+        "effect": "A painful control mark that helps the staff command abominations, flesh constructs, and grafted servants.",
+        "unlocks": [
+          "Pain Brand",
+          "Obedience Spike",
+          "Nerve Collar",
+          "Control Scar",
+          "Staff-Bound Command Mark"
+        ],
+        "compatible": [
+          "Abomination",
+          "Creature"
+        ],
+        "ingredients": [
+          "Pain Essence",
+          "Sith Metal Spike"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Use the Force"
+        ],
+        "dc": 16,
+        "risk": "High",
+        "prereq": [
+          "abm_forbidden_anatomy"
+        ]
+      },
+      {
+        "id": "abm_limb_grafts",
+        "name": "Corpse-Limb Grafts",
+        "icon": "🦴",
+        "cost": 3,
+        "rankMax": 1,
+        "x": 27,
+        "y": 34,
+        "tier": "I",
+        "type": "Crude Grafts",
+        "effect": "Extra arms, bone claws, dead hand tools, stitched tendon limbs, and corpse muscle patches for constructed bodies.",
+        "unlocks": [
+          "Extra Arm Graft",
+          "Bone Claw Graft",
+          "Dead Hand Tool",
+          "Stitched Tendon Limb",
+          "Corpse Muscle Patch"
+        ],
+        "compatible": [
+          "Abomination",
+          "Creature"
+        ],
+        "ingredients": [
+          "Corpse Limb",
+          "Preserved Abomination Tendon"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics"
+        ],
+        "dc": 16,
+        "risk": "High",
+        "prereq": [
+          "abm_forbidden_anatomy"
+        ]
+      },
+      {
+        "id": "abm_containment",
+        "name": "Containment Practices",
+        "icon": "⬢",
+        "cost": 2,
+        "rankMax": 1,
+        "x": 73,
+        "y": 34,
+        "tier": "I",
+        "type": "Containment",
+        "effect": "Restraint circles, flesh hook chains, staff-bound containment, surgical lock frames, and emergency sever commands.",
+        "unlocks": [
+          "Restraint Circle",
+          "Flesh Hook Chain",
+          "Staff-Bound Containment",
+          "Surgical Lock Frame",
+          "Emergency Sever Command"
+        ],
+        "compatible": [
+          "Ritual Tool",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Sith Metal Chain",
+          "Ritual Ink"
+        ],
+        "checks": [
+          "Mechanics",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 16,
+        "risk": "Low",
+        "prereq": [
+          "abm_forbidden_anatomy"
+        ]
+      },
+      {
+        "id": "abm_lesser_horror",
+        "name": "Lesser Flesh Horror",
+        "icon": "☣",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 28,
+        "y": 50,
+        "tier": "II",
+        "type": "Major Abomination Prototype",
+        "effect": "Creates a small or medium combat-capable abomination. Before Sith Lord rank, usually only one major abomination at a time.",
+        "unlocks": [
+          "Lesser Flesh Horror",
+          "Stitched Guardian",
+          "Bone-Jawed Servant",
+          "Corpsebound Mauler",
+          "Failed War Body"
+        ],
+        "compatible": [
+          "Abomination"
+        ],
+        "ingredients": [
+          "Living Organ",
+          "Preserved Abomination Tendon"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "abm_servitors",
+          "abm_pain_brand"
+        ]
+      },
+      {
+        "id": "abm_organ_engine",
+        "name": "Organ Engine",
+        "icon": "◈",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 50,
+        "y": 53,
+        "tier": "II",
+        "type": "Internal Engine",
+        "effect": "Adds one internal engine: rage heart, pain lung, venom bladder, blood pump, or corpse-stomach furnace.",
+        "unlocks": [
+          "Blood Pump Engine",
+          "Rage Heart",
+          "Pain Lung",
+          "Venom Bladder",
+          "Corpse-Stomach Furnace"
+        ],
+        "compatible": [
+          "Abomination",
+          "Creature",
+          "Armor"
+        ],
+        "ingredients": [
+          "Living Organ",
+          "Tuk’ata Blood"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "abm_forbidden_anatomy"
+        ]
+      },
+      {
+        "id": "abm_boneplate",
+        "name": "Boneplate Construction",
+        "icon": "⬟",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 73,
+        "y": 50,
+        "tier": "II",
+        "type": "Abomination Armor",
+        "effect": "Boneplate carapaces, ribcage shielding, spine reinforcement, skull-mask plating, and claw-bone armor.",
+        "unlocks": [
+          "Boneplate Carapace",
+          "Ribcage Shielding",
+          "Spine Reinforcement",
+          "Skull Mask Plating",
+          "Claw-Bone Armor"
+        ],
+        "compatible": [
+          "Abomination",
+          "Armor"
+        ],
+        "ingredients": [
+          "Bone Plate",
+          "Sithspawn Bone"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics"
+        ],
+        "dc": 20,
+        "risk": "High",
+        "prereq": [
+          "abm_limb_grafts"
+        ]
+      },
+      {
+        "id": "abm_hunger_core",
+        "name": "Hunger Core",
+        "icon": "☠",
+        "cost": 4,
+        "rankMax": 1,
+        "x": 50,
+        "y": 64,
+        "tier": "II",
+        "type": "Hunger Power Source",
+        "effect": "Creates blood, fear, meat, pain, or Force hunger. Stronger when fed, unstable if starved.",
+        "unlocks": [
+          "Blood Hunger",
+          "Fear Hunger",
+          "Meat Hunger",
+          "Pain Hunger",
+          "Force Hunger"
+        ],
+        "compatible": [
+          "Abomination",
+          "Armor",
+          "Relic",
+          "Weapon"
+        ],
+        "ingredients": [
+          "Pain Essence",
+          "Blood of a Force-Sensitive"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force"
+        ],
+        "dc": 20,
+        "risk": "Severe",
+        "prereq": [
+          "abm_organ_engine"
+        ]
+      },
+      {
+        "id": "abm_chimera",
+        "name": "Chimera Body Protocol",
+        "icon": "♞",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 25,
+        "y": 75,
+        "tier": "III",
+        "type": "Chimera Horror",
+        "effect": "Stitches rare Sith beast traits into an unnatural constructed body. This is not normal Beast Shaping.",
+        "unlocks": [
+          "Multi-Species Flesh Horror",
+          "Grafted Beast Organ",
+          "Predator Limb Integration",
+          "Venom-Claw Fusion",
+          "Warbeast Chimera Frame"
+        ],
+        "compatible": [
+          "Abomination"
+        ],
+        "ingredients": [
+          "Unique Beast Heart",
+          "Rare Creature Organ"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Survival",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "abm_lesser_horror"
+        ],
+        "requiresNodes": [
+          "bst_greater_mutation"
+        ]
+      },
+      {
+        "id": "abm_living_armor_host",
+        "name": "Living Armor Host",
+        "icon": "♜",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 42,
+        "y": 78,
+        "tier": "III",
+        "type": "Wearable Abomination",
+        "effect": "Creates armor that is partially alive and partially abomination. Counts as a major creation and requires maintenance.",
+        "unlocks": [
+          "Armor Host",
+          "Flesh-Bound Harness",
+          "Symbiotic Plate",
+          "Pain-Fed Living Armor",
+          "Wearable Abomination Shell"
+        ],
+        "compatible": [
+          "Armor",
+          "Abomination"
+        ],
+        "ingredients": [
+          "Preserved Abomination Tendon",
+          "Sith Metal Plate"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Mechanics",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "abm_boneplate"
+        ],
+        "requiresNodes": [
+          "art_living_armor"
+        ]
+      },
+      {
+        "id": "abm_soul_vessel",
+        "name": "Soul-Ready Vessel",
+        "icon": "◉",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 58,
+        "y": 78,
+        "tier": "III",
+        "type": "Spirit Vessel",
+        "effect": "Creates a body capable of housing a spirit, echo, fragment, or bound consciousness. Does not bind the spirit by itself.",
+        "unlocks": [
+          "Empty Flesh Vessel",
+          "Spirit-Ready Body",
+          "Corpse Host",
+          "Echo Vessel",
+          "Bound Soul Frame"
+        ],
+        "compatible": [
+          "Abomination"
+        ],
+        "ingredients": [
+          "Soul Ash",
+          "Living Organ"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Treat Injury",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "Severe",
+        "prereq": [
+          "abm_organ_engine",
+          "abm_pain_brand"
+        ],
+        "requiresNodes": [
+          "spi_soul_anchor"
+        ]
+      },
+      {
+        "id": "abm_self_repair",
+        "name": "Abomination Self-Repair",
+        "icon": "✚",
+        "cost": 5,
+        "rankMax": 1,
+        "x": 75,
+        "y": 75,
+        "tier": "III",
+        "type": "Self Repair",
+        "effect": "Meat-knitting, bone regrowth, blood clot surge, flesh memory, and scar engines. Not immortality; it needs food and maintenance.",
+        "unlocks": [
+          "Meat-Knitting Tissue",
+          "Bone Regrowth",
+          "Blood Clot Surge",
+          "Flesh Memory",
+          "Scar Engine"
+        ],
+        "compatible": [
+          "Abomination",
+          "Creature"
+        ],
+        "ingredients": [
+          "Living Organ",
+          "Dark Nexus Tissue"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Use the Force"
+        ],
+        "dc": 25,
+        "risk": "High",
+        "prereq": [
+          "abm_organ_engine",
+          "abm_boneplate"
+        ]
+      },
+      {
+        "id": "abm_true_abomination",
+        "name": "True Abomination",
+        "icon": "☣",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 30,
+        "y": 94,
+        "tier": "IV",
+        "type": "True Horror",
+        "effect": "Creates a major independent abomination: war horror, flesh titan prototype, battlefield butcher, or living siege beast.",
+        "unlocks": [
+          "True Sith Abomination",
+          "War Horror",
+          "Flesh Titan Prototype",
+          "Battlefield Butcher",
+          "Living Siege Beast"
+        ],
+        "compatible": [
+          "Abomination"
+        ],
+        "ingredients": [
+          "Unique Beast Heart",
+          "Dark Nexus Crystal"
+        ],
+        "checks": [
+          "Treat Injury",
+          "Use the Force",
+          "Mechanics"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "abm_lesser_horror",
+          "abm_organ_engine",
+          "abm_boneplate",
+          "abm_hunger_core"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "abm_soul_furnace_body",
+        "name": "Soul Furnace Body",
+        "icon": "◉",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 52,
+        "y": 95,
+        "tier": "IV",
+        "type": "Spirit-Powered Horror",
+        "effect": "Creates an abomination powered by a spirit, ghost, echo, or soul fragment.",
+        "unlocks": [
+          "Soul Furnace",
+          "Spirit-Bound Horror",
+          "Ghost-Fed Body",
+          "Echo-Eating Vessel"
+        ],
+        "compatible": [
+          "Abomination"
+        ],
+        "ingredients": [
+          "Bound Spirit Shard",
+          "Soul Furnace Core"
+        ],
+        "checks": [
+          "Knowledge: Sith Lore",
+          "Use the Force",
+          "Treat Injury"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "abm_soul_vessel"
+        ],
+        "requiresNodes": [
+          "spi_soul_furnace"
+        ],
+        "gate": "gm"
+      },
+      {
+        "id": "abm_warbody_restoration",
+        "name": "Ancient Warbody Restoration",
+        "icon": "♜",
+        "cost": 7,
+        "rankMax": 1,
+        "x": 74,
+        "y": 94,
+        "tier": "IV",
+        "type": "Ancient Horror Restoration",
+        "effect": "Restore ancient abomination remains, dormant war bodies, tomb guardian flesh, or failed Sithspawn horrors.",
+        "unlocks": [
+          "Restore Ancient Abomination",
+          "Repair Dormant Warbody",
+          "Reawaken Tomb Guardian Flesh",
+          "Rebuild Failed Sithspawn Horror"
+        ],
+        "compatible": [
+          "Abomination"
+        ],
+        "ingredients": [
+          "Ancient Warbody Core",
+          "Ancient Sith Bone"
+        ],
+        "checks": [
+          "Mechanics",
+          "Treat Injury",
+          "Knowledge: Sith Lore"
+        ],
+        "dc": 30,
+        "risk": "Extreme",
+        "prereq": [
+          "abm_true_abomination"
+        ],
+        "gate": "story"
+      }
+    ],
+    "family": "forbidden",
+    "accessLabel": "Staff-Locked",
+    "accent": "#9cabb4",
+    "order": 6,
+    "unlockSummary": "Requires the Abominator’s Staff."
+  }
+};
+
+const RECIPES = [
+  {
+    "id": "recipe_serrated_edge",
+    "name": "Serrated Edge",
+    "icon": "⚔",
+    "tree": "Sith Artifice",
+    "tier": "Tier I",
+    "ap": 2,
+    "type": "Weapon Component",
+    "effect": "Adds a bleeding/rending wound effect to a melee or thrown blade. Stronger when forged into the weapon from scratch.",
+    "prerequisites": [
+      "Cruel Edge Techniques"
+    ],
+    "ingredients": [
+      {
+        "name": "Beast Teeth",
+        "qty": 1
+      },
+      {
+        "name": "Sith Metal Slivers",
+        "qty": 1
+      }
+    ],
+    "checks": [
+      "Mechanics",
+      "Knowledge: Sith Lore"
+    ],
+    "dc": 16,
+    "time": "1-4 hours",
+    "risk": "Low",
+    "gmSecret": "No"
+  },
+  {
+    "id": "recipe_paralytic",
+    "name": "Nerve-Lock Venom",
+    "icon": "☣",
+    "tree": "Dark Compounds",
+    "tier": "Tier II",
+    "ap": 3,
+    "type": "Poison / Weapon Coating",
+    "effect": "A paralytic compound that can slow, lock muscles, or briefly seize a limb when delivered through blade, dart, bomb, or syringe.",
+    "prerequisites": [
+      "Paralytic Venomcraft"
+    ],
+    "ingredients": [
+      {
+        "name": "Preserved Nerve Tissue",
+        "qty": 1
+      },
+      {
+        "name": "Paralytic Venom",
+        "qty": 1
+      }
+    ],
+    "checks": [
+      "Treat Injury",
+      "Survival",
+      "Knowledge: Sith Lore"
+    ],
+    "dc": 20,
+    "time": "4 hours",
+    "risk": "High",
+    "gmSecret": "Optional"
+  },
+  {
+    "id": "recipe_hssiss_serum",
+    "name": "Hssiss Shadow Blood Serum",
+    "icon": "☽",
+    "tree": "Dark Compounds / Beast Shaping",
+    "tier": "Tier III",
+    "ap": 5,
+    "type": "Beast Mutagen",
+    "effect": "Temporarily bends shadow around the body, granting powerful stealth or brief invisibility with possible light sensitivity and shadow sickness.",
+    "prerequisites": [
+      "Sith Beast Mutagens",
+      "Trait Extraction"
+    ],
+    "ingredients": [
+      {
+        "name": "Hssiss Shadow Gland",
+        "qty": 1
+      },
+      {
+        "name": "Stabilized Organ Extract",
+        "qty": 1
+      }
+    ],
+    "checks": [
+      "Treat Injury",
+      "Knowledge: Sith Lore",
+      "Use the Force"
+    ],
+    "dc": 25,
+    "time": "1 day",
+    "risk": "Severe",
+    "gmSecret": "Recommended"
+  },
+  {
+    "id": "recipe_mutation_vat",
+    "name": "Mutation Vat Frame",
+    "icon": "🧬",
+    "tree": "Ritual Tools",
+    "tier": "Tier II",
+    "ap": 4,
+    "type": "Workshop Tool",
+    "effect": "A controlled biological alteration vat used to stabilize organs, brew beast mutagens, and perform safer biological crafting.",
+    "prerequisites": [
+      "Mutation Vat Frame"
+    ],
+    "ingredients": [
+      {
+        "name": "Ancient Lab Vat Fluid",
+        "qty": 1
+      },
+      {
+        "name": "Power Core",
+        "qty": 1
+      }
+    ],
+    "checks": [
+      "Mechanics",
+      "Treat Injury"
+    ],
+    "dc": 20,
+    "time": "1-3 days",
+    "risk": "High",
+    "gmSecret": "No"
+  },
+  {
+    "id": "recipe_ghost_edge",
+    "name": "Ghost-Piercing Edge",
+    "icon": "☽",
+    "tree": "Sith Artifice / Spirit & Force-Anomaly",
+    "tier": "Tier III",
+    "ap": 5,
+    "type": "Spirit Weapon Component",
+    "effect": "Allows a weapon to damage spirits, echoes, Force ghosts, or incorporeal threats, while attracting spiritual attention.",
+    "prerequisites": [
+      "Ghost-Piercing Etching",
+      "Ghost-Piercing Primer"
+    ],
+    "ingredients": [
+      {
+        "name": "Ghost-Touched Ash",
+        "qty": 1
+      },
+      {
+        "name": "Bound Spirit Shard",
+        "qty": 1
+      }
+    ],
+    "checks": [
+      "Knowledge: Sith Lore",
+      "Use the Force",
+      "Mechanics"
+    ],
+    "dc": 25,
+    "time": "1-3 days",
+    "risk": "High",
+    "gmSecret": "Recommended"
+  },
+  {
+    "id": "recipe_lesser_horror",
+    "name": "Lesser Flesh Horror",
+    "icon": "☣",
+    "tree": "Sith Abomination",
+    "tier": "Tier II",
+    "ap": 4,
+    "type": "Major Abomination Prototype",
+    "effect": "Creates a small or medium stitched combat horror. Useful but unstable, ingredient-heavy, and usually limited to one major abomination before Sith Lord rank.",
+    "prerequisites": [
+      "Flesh-Stitched Servitors",
+      "Pain Obedience Brand",
+      "Abomination Staff"
+    ],
+    "ingredients": [
+      {
+        "name": "Living Organ",
+        "qty": 1
+      },
+      {
+        "name": "Preserved Abomination Tendon",
+        "qty": 1
+      },
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      }
+    ],
+    "checks": [
+      "Treat Injury",
+      "Use the Force",
+      "Mechanics"
+    ],
+    "dc": 25,
+    "time": "1-3 days",
+    "risk": "Severe",
+    "gmSecret": "Required"
+  }
+];
+
+const COMPONENTS = [
+  {
+    "id": "sith_weapon_base",
+    "name": "Sith-Forged Weapon Base",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_foundation"
+    ],
+    "category": [
+      "Melee Weapon",
+      "Thrown Weapon",
+      "Weapon"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Craft New Item"
+    ],
+    "type": "Base",
+    "effect": "Creates a Sith-forged weapon foundation with full component capacity.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Alchemical Salts",
+        "qty": 1
+      },
+      {
+        "name": "Ritual Ink",
+        "qty": 1
+      }
+    ],
+    "dcMod": 0,
+    "risk": "Low"
+  },
+  {
+    "id": "serrated_edge",
+    "name": "Serrated Edge",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_cruel_edge"
+    ],
+    "category": [
+      "Melee Weapon",
+      "Thrown Weapon",
+      "Weapon"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Minor Weapon Component",
+    "effect": "Adds bleeding/rending damage over time; cursed version hungers for blood.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Beast Teeth",
+        "qty": 1
+      },
+      {
+        "name": "Sith Metal Slivers",
+        "qty": 1
+      }
+    ],
+    "dcMod": 1,
+    "risk": "Low"
+  },
+  {
+    "id": "tendon_edge",
+    "name": "Tendon-Cutting Edge",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_cruel_geometry"
+    ],
+    "category": [
+      "Melee Weapon",
+      "Thrown Weapon",
+      "Weapon"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Standard Weapon Component",
+    "effect": "May reduce target movement or punish enemies that try to flee.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Sith Metal Slivers",
+        "qty": 2
+      },
+      {
+        "name": "Preserved Nerve Tissue",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "blackened_plating",
+    "name": "Blackened Armor Plating",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_dark_plating"
+    ],
+    "category": [
+      "Armor",
+      "Mask / Helmet",
+      "Gauntlet / Bracer"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Armor Component",
+    "effect": "Basic alchemical defensive plating with fear-marked surfaces.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Armor Plate",
+        "qty": 1
+      },
+      {
+        "name": "Blood-Reactive Oil",
+        "qty": 1
+      }
+    ],
+    "dcMod": 1,
+    "risk": "Low"
+  },
+  {
+    "id": "pain_hardened_armor",
+    "name": "Pain-Hardened Armor",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_pain_wargear"
+    ],
+    "category": [
+      "Armor"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Standard Armor Component",
+    "effect": "Armor hardens or reacts after the wearer takes damage; cursed form feeds on pain.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      },
+      {
+        "name": "Blood-Reactive Oil",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "fear_mask",
+    "name": "Fear Mask",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_fear_relics"
+    ],
+    "category": [
+      "Mask / Helmet",
+      "Relic"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Relic Component",
+    "effect": "A mask or talisman that intensifies intimidation and dread.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Crystallized Fear Residue",
+        "qty": 1
+      },
+      {
+        "name": "Ritual Ink",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "blood_reservoir",
+    "name": "Blood Reservoir",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_blood_reservoir"
+    ],
+    "category": [
+      "Melee Weapon",
+      "Armor",
+      "Relic",
+      "Gauntlet / Bracer",
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Standard/Major Component",
+    "effect": "Stores blood, rage, pain, or death energy for later activation.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Blood of a Force-Sensitive",
+        "qty": 1
+      },
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "ritual_grip",
+    "name": "Ritual Grip",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_lightsaber_hilt"
+    ],
+    "category": [
+      "Lightsaber Hilt"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Lightsaber Hilt Component",
+    "effect": "A dark hilt grip that resists disarm and channels focus through pain or rage.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Low-Grade Kyber Splinter",
+        "qty": 1
+      },
+      {
+        "name": "Ritual Ink",
+        "qty": 1
+      }
+    ],
+    "dcMod": 2,
+    "risk": "Moderate"
+  },
+  {
+    "id": "crystal_matrix",
+    "name": "Corrupted Crystal Matrix",
+    "tree": "Sith Artifice",
+    "nodeIds": [
+      "art_crystal_resonance"
+    ],
+    "category": [
+      "Lightsaber Hilt"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Major Lightsaber Component",
+    "effect": "True crystal/hilt alchemy that creates rage-reactive blade resonance.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Black Kyber Focus",
+        "qty": 1
+      },
+      {
+        "name": "Cracked Kyber Dust",
+        "qty": 1
+      }
+    ],
+    "dcMod": 5,
+    "risk": "High"
+  },
+  {
+    "id": "ghost_edge",
+    "name": "Ghost-Piercing Edge",
+    "tree": "Sith Artifice / Spirit",
+    "nodeIds": [
+      "art_ghost_etching",
+      "spi_ghost_primer"
+    ],
+    "category": [
+      "Melee Weapon",
+      "Thrown Weapon",
+      "Lightsaber Hilt",
+      "Relic"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Major Spirit Component",
+    "effect": "Lets weapons or relics affect spirits, echoes, or Force ghosts.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Ghost-Touched Ash",
+        "qty": 1
+      },
+      {
+        "name": "Bound Spirit Shard",
+        "qty": 1
+      }
+    ],
+    "dcMod": 5,
+    "risk": "High"
+  },
+  {
+    "id": "living_plate_seed",
+    "name": "Living Plate Seed",
+    "tree": "Sith Artifice / Abomination",
+    "nodeIds": [
+      "art_living_armor",
+      "abm_living_armor_host"
+    ],
+    "category": [
+      "Armor",
+      "Abomination"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Upgrade Existing Creation",
+      "Craft New Item",
+      "Build Abomination"
+    ],
+    "type": "Major Living Armor Component",
+    "effect": "Armor becomes partially alive, reactive, possessive, and hungry.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Living Organ",
+        "qty": 1
+      },
+      {
+        "name": "Preserved Abomination Tendon",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "Severe"
+  },
+  {
+    "id": "watching_mask",
+    "name": "Watching Mask",
+    "tree": "Sith Artifice / Spirit",
+    "nodeIds": [
+      "art_intelligent_wargear",
+      "spi_spirit_binding"
+    ],
+    "category": [
+      "Mask / Helmet",
+      "Relic"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Upgrade Existing Creation",
+      "Craft New Item"
+    ],
+    "type": "Forbidden Relic Component",
+    "effect": "A semi-aware mask that warns, whispers, remembers, and may lie.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Bound Spirit Shard",
+        "qty": 1
+      },
+      {
+        "name": "Named Object",
+        "qty": 1
+      }
+    ],
+    "dcMod": 8,
+    "risk": "Severe"
+  },
+  {
+    "id": "basic_sith_venom",
+    "name": "Basic Sith Venom",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_toxicology"
+    ],
+    "category": [
+      "Melee Weapon",
+      "Thrown Weapon",
+      "Gauntlet / Bracer",
+      "Bomb"
+    ],
+    "methods": [
+      "Create Consumable",
+      "Coat Weapon",
+      "Imbue Existing Item"
+    ],
+    "type": "Poison",
+    "effect": "Basic toxin for blade coats, darts, syringes, and simple bombs.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Venom Sac",
+        "qty": 1
+      },
+      {
+        "name": "Alchemical Salts",
+        "qty": 1
+      }
+    ],
+    "dcMod": 1,
+    "risk": "Low"
+  },
+  {
+    "id": "acid_flask",
+    "name": "Acid Flask",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_corrosives"
+    ],
+    "category": [
+      "Bomb",
+      "Melee Weapon",
+      "Thrown Weapon"
+    ],
+    "methods": [
+      "Create Consumable",
+      "Coat Weapon"
+    ],
+    "type": "Acid",
+    "effect": "Simple corrosive acid for flasks, traps, locks, or short weapon coats.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Acid Vial",
+        "qty": 1
+      },
+      {
+        "name": "Alchemical Salts",
+        "qty": 1
+      }
+    ],
+    "dcMod": 2,
+    "risk": "Moderate"
+  },
+  {
+    "id": "choking_vapor",
+    "name": "Choking Vapor",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_vapors"
+    ],
+    "category": [
+      "Bomb"
+    ],
+    "methods": [
+      "Create Consumable"
+    ],
+    "type": "Vapor",
+    "effect": "Creates a cloud that irritates breathing, sight, and concentration.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Smoke Powder",
+        "qty": 1
+      },
+      {
+        "name": "Medical Chemicals",
+        "qty": 1
+      }
+    ],
+    "dcMod": 1,
+    "risk": "Low"
+  },
+  {
+    "id": "rage_stimulant",
+    "name": "Rage Stimulant",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_stimulants"
+    ],
+    "category": [
+      "Mutagen"
+    ],
+    "methods": [
+      "Create Mutagen",
+      "Create Consumable"
+    ],
+    "type": "Combat Drug",
+    "effect": "Temporary aggression and physical power with crash/impulse risk.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Adrenal Fluid",
+        "qty": 1
+      },
+      {
+        "name": "Medical Chemicals",
+        "qty": 1
+      }
+    ],
+    "dcMod": 2,
+    "risk": "Moderate"
+  },
+  {
+    "id": "nerve_lock_venom",
+    "name": "Nerve-Lock Venom",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_paralytic"
+    ],
+    "category": [
+      "Melee Weapon",
+      "Thrown Weapon",
+      "Bomb",
+      "Mutagen",
+      "Gauntlet / Bracer"
+    ],
+    "methods": [
+      "Create Consumable",
+      "Coat Weapon",
+      "Imbue Existing Item"
+    ],
+    "type": "Paralytic",
+    "effect": "Muscle-seizing toxin that can slow, stun, or cripple movement.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Preserved Nerve Tissue",
+        "qty": 1
+      },
+      {
+        "name": "Paralytic Venom",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "bone_eating_acid",
+    "name": "Bone-Eating Acid",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_cruel_acids"
+    ],
+    "category": [
+      "Bomb",
+      "Melee Weapon",
+      "Thrown Weapon"
+    ],
+    "methods": [
+      "Create Consumable",
+      "Coat Weapon"
+    ],
+    "type": "Advanced Acid",
+    "effect": "Cruel acid that weakens organic material, bone, armor straps, or droid plating.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "K’lor’slug Matron Bile",
+        "qty": 1
+      },
+      {
+        "name": "Acid Vial",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "fear_vapor",
+    "name": "Fear Vapor",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_fear_hallucination"
+    ],
+    "category": [
+      "Bomb"
+    ],
+    "methods": [
+      "Create Consumable"
+    ],
+    "type": "Fear Vapor",
+    "effect": "Induces panic, hallucinations, dread, and battlefield morale disruption.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Crystallized Fear Residue",
+        "qty": 1
+      },
+      {
+        "name": "Smoke Powder",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "beast_blood_base",
+    "name": "Beast Blood Base",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_beast_blood"
+    ],
+    "category": [
+      "Mutagen"
+    ],
+    "methods": [
+      "Create Mutagen",
+      "Create Consumable"
+    ],
+    "type": "Mutagen Base",
+    "effect": "Stabilizes beast blood or organs into a temporary transformation base.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Tuk’ata Blood",
+        "qty": 1
+      },
+      {
+        "name": "Alchemical Salts",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "hssiss_shadow_serum",
+    "name": "Hssiss Shadow Blood Serum",
+    "tree": "Dark Compounds / Beast Shaping",
+    "nodeIds": [
+      "cmp_beast_mutagens",
+      "bst_shadow"
+    ],
+    "category": [
+      "Mutagen"
+    ],
+    "methods": [
+      "Create Mutagen"
+    ],
+    "type": "Beast Mutagen",
+    "effect": "Temporarily bends shadow around the user, granting stealth or brief invisibility.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Hssiss Shadow Gland",
+        "qty": 1
+      },
+      {
+        "name": "Stabilized Organ Extract",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "Severe"
+  },
+  {
+    "id": "klor_acid_mutagen",
+    "name": "K’lor Acid Gland Mutagen",
+    "tree": "Dark Compounds / Beast Shaping",
+    "nodeIds": [
+      "cmp_beast_mutagens",
+      "bst_venom_acid"
+    ],
+    "category": [
+      "Mutagen"
+    ],
+    "methods": [
+      "Create Mutagen"
+    ],
+    "type": "Beast Mutagen",
+    "effect": "Temporarily grows acid glands, acidic saliva, or acid spit.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "K’lor’slug Matron Bile",
+        "qty": 1
+      },
+      {
+        "name": "Stabilized Organ Extract",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "Severe"
+  },
+  {
+    "id": "tukata_predator_serum",
+    "name": "Tuk’ata Predator Serum",
+    "tree": "Dark Compounds / Beast Shaping",
+    "nodeIds": [
+      "cmp_beast_mutagens",
+      "bst_predator"
+    ],
+    "category": [
+      "Mutagen"
+    ],
+    "methods": [
+      "Create Mutagen"
+    ],
+    "type": "Beast Mutagen",
+    "effect": "Grants claws, scent, speed, predatory reflexes, and feral aggression.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Tuk’ata Alpha Fang",
+        "qty": 1
+      },
+      {
+        "name": "Adrenal Marrow",
+        "qty": 1
+      }
+    ],
+    "dcMod": 5,
+    "risk": "High"
+  },
+  {
+    "id": "terentatek_rage",
+    "name": "Terentatek Rage Mutagen",
+    "tree": "Dark Compounds / Beast Shaping",
+    "nodeIds": [
+      "cmp_beast_mutagens",
+      "bst_force_hunter"
+    ],
+    "category": [
+      "Mutagen"
+    ],
+    "methods": [
+      "Create Mutagen"
+    ],
+    "type": "Forbidden Mutagen",
+    "effect": "Grants monstrous rage and limited Force resistance at the risk of violent instincts.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Terentatek Marrow",
+        "qty": 1
+      },
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      }
+    ],
+    "dcMod": 7,
+    "risk": "Severe"
+  },
+  {
+    "id": "force_static_bomb",
+    "name": "Force-Sickening Vapor",
+    "tree": "Dark Compounds / Spirit",
+    "nodeIds": [
+      "cmp_anti_force",
+      "spi_static_primer"
+    ],
+    "category": [
+      "Bomb"
+    ],
+    "methods": [
+      "Create Consumable"
+    ],
+    "type": "Anti-Force Bomb",
+    "effect": "Disrupts Force senses and concentration in a burst of static pressure.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Force-Wound Residue",
+        "qty": 1
+      },
+      {
+        "name": "Cracked Kyber Dust",
+        "qty": 1
+      }
+    ],
+    "dcMod": 7,
+    "risk": "Severe"
+  },
+  {
+    "id": "plague_culture",
+    "name": "Rakghoul-Derived Plague Culture",
+    "tree": "Dark Compounds",
+    "nodeIds": [
+      "cmp_disease"
+    ],
+    "category": [
+      "Bomb",
+      "Mutagen",
+      "Abomination"
+    ],
+    "methods": [
+      "Create Consumable",
+      "Create Mutagen",
+      "Build Abomination"
+    ],
+    "type": "Disease Culture",
+    "effect": "Controlled infection material for plague bombs, rot mutagens, and abomination flesh.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Rakghoul Plague Blood",
+        "qty": 1
+      },
+      {
+        "name": "Medical Chemicals",
+        "qty": 1
+      }
+    ],
+    "dcMod": 7,
+    "risk": "Severe"
+  },
+  {
+    "id": "true_feral_catalyst",
+    "name": "True Beastform Catalyst",
+    "tree": "Dark Compounds / Beast Shaping",
+    "nodeIds": [
+      "cmp_true_feral",
+      "bst_feral_mastery"
+    ],
+    "category": [
+      "Mutagen"
+    ],
+    "methods": [
+      "Create Mutagen"
+    ],
+    "type": "Greater Feral Transformation",
+    "effect": "Creates a temporary were-beast Sith monster form with severe behavioral risk.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Unique Beast Heart",
+        "qty": 1
+      },
+      {
+        "name": "Dark Nexus Crystal",
+        "qty": 1
+      }
+    ],
+    "dcMod": 9,
+    "risk": "Extreme"
+  },
+  {
+    "id": "trait_extraction",
+    "name": "Extracted Beast Trait",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_trait"
+    ],
+    "category": [
+      "Creature",
+      "Mutagen",
+      "Weapon",
+      "Armor"
+    ],
+    "methods": [
+      "Shape Creature",
+      "Create Mutagen",
+      "Forge from Scratch",
+      "Imbue Existing Item"
+    ],
+    "type": "Trait Ingredient",
+    "effect": "Extracts and prepares a beast trait for later grafting, mutagen use, or component crafting.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Rare Creature Organ",
+        "qty": 1
+      }
+    ],
+    "dcMod": 2,
+    "risk": "Moderate"
+  },
+  {
+    "id": "obedience_brand",
+    "name": "Dominance Conditioning",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_obedience"
+    ],
+    "category": [
+      "Creature"
+    ],
+    "methods": [
+      "Shape Creature"
+    ],
+    "type": "Creature Control",
+    "effect": "Conditions a beast through fear, feeding, pain, scent, or dominance ritual.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      },
+      {
+        "name": "Raw Meat",
+        "qty": 1
+      }
+    ],
+    "dcMod": 2,
+    "risk": "Moderate"
+  },
+  {
+    "id": "minor_beast_mutation",
+    "name": "Minor Beast Mutation",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_minor_mutation"
+    ],
+    "category": [
+      "Creature"
+    ],
+    "methods": [
+      "Shape Creature"
+    ],
+    "type": "Creature Mutation",
+    "effect": "Adds claws, scent, night eyes, venom bite, hide, or aggressive growth to a creature.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Rare Creature Organ",
+        "qty": 1
+      },
+      {
+        "name": "Medical Chemicals",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "predator_template",
+    "name": "Predator Template",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_predator"
+    ],
+    "category": [
+      "Creature",
+      "Mutagen"
+    ],
+    "methods": [
+      "Shape Creature",
+      "Create Mutagen"
+    ],
+    "type": "Predator Template",
+    "effect": "Adds speed, tracking, pack aggression, pounce, and predatory senses.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Tuk’ata Alpha Fang",
+        "qty": 1
+      },
+      {
+        "name": "Adrenal Marrow",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "shadow_template",
+    "name": "Hssiss Shadow Template",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_shadow"
+    ],
+    "category": [
+      "Creature",
+      "Mutagen",
+      "Armor"
+    ],
+    "methods": [
+      "Shape Creature",
+      "Create Mutagen",
+      "Imbue Existing Item"
+    ],
+    "type": "Shadow Template",
+    "effect": "Adds stealth, darkness adaptation, light-drinking skin, or ambush traits.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Hssiss Shadow Gland",
+        "qty": 1
+      }
+    ],
+    "dcMod": 5,
+    "risk": "High"
+  },
+  {
+    "id": "boneplate_template",
+    "name": "Dark Hide and Boneplate",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_hide_bone"
+    ],
+    "category": [
+      "Creature",
+      "Armor",
+      "Abomination"
+    ],
+    "methods": [
+      "Shape Creature",
+      "Forge from Scratch",
+      "Build Abomination"
+    ],
+    "type": "Defense Template",
+    "effect": "Adds hide, boneplate, muscle density, skull plate, or terentatek tissue density.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Armored Hide",
+        "qty": 1
+      },
+      {
+        "name": "Bone Plate",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "force_hunter_instinct",
+    "name": "Force-Hunter Instinct",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_force_hunter"
+    ],
+    "category": [
+      "Creature",
+      "Mutagen"
+    ],
+    "methods": [
+      "Shape Creature",
+      "Create Mutagen"
+    ],
+    "type": "Anti-Force Creature Trait",
+    "effect": "Adds Force-scent, prey drive, meditation disruption, and anti-Jedi aggression.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Terentatek Marrow",
+        "qty": 1
+      },
+      {
+        "name": "Vornskr Force-Scent Organ",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "Severe"
+  },
+  {
+    "id": "apex_beast_template",
+    "name": "Apex Sith Beast Template",
+    "tree": "Beast Shaping",
+    "nodeIds": [
+      "bst_apex_template"
+    ],
+    "category": [
+      "Creature"
+    ],
+    "methods": [
+      "Shape Creature"
+    ],
+    "type": "Apex Creature Template",
+    "effect": "Upgrades or creates an apex Sith beast variant. Major creation and controlled creature.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Unique Beast Heart",
+        "qty": 1
+      },
+      {
+        "name": "Dark Nexus Crystal",
+        "qty": 1
+      }
+    ],
+    "dcMod": 9,
+    "risk": "Extreme"
+  },
+  {
+    "id": "field_kit",
+    "name": "Alchemical Field Kit",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_field_kit"
+    ],
+    "category": [
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Build Ritual Tool"
+    ],
+    "type": "Tool",
+    "effect": "Portable kit for field harvesting, minor compounds, preservation, and emergency stabilization.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Tool Parts",
+        "qty": 1
+      },
+      {
+        "name": "Medical Chemicals",
+        "qty": 1
+      }
+    ],
+    "dcMod": 0,
+    "risk": "Low"
+  },
+  {
+    "id": "ritual_knife",
+    "name": "Ritual Knife",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_focus_impl"
+    ],
+    "category": [
+      "Ritual Tool",
+      "Melee Weapon"
+    ],
+    "methods": [
+      "Build Ritual Tool",
+      "Forge from Scratch"
+    ],
+    "type": "Focus Tool",
+    "effect": "Knife used to carve, bleed, mark, etch, and focus Sith Alchemy rituals.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Sith Metal Slivers",
+        "qty": 1
+      },
+      {
+        "name": "Ritual Ink",
+        "qty": 1
+      }
+    ],
+    "dcMod": 1,
+    "risk": "Low"
+  },
+  {
+    "id": "binding_chain",
+    "name": "Binding Chain",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_binding"
+    ],
+    "category": [
+      "Ritual Tool",
+      "Creature",
+      "Abomination"
+    ],
+    "methods": [
+      "Build Ritual Tool",
+      "Shape Creature",
+      "Build Abomination"
+    ],
+    "type": "Binding Tool",
+    "effect": "Chain used to restrain beasts, subjects, spirits, and flesh constructs.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Sith Metal Chain",
+        "qty": 1
+      },
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      }
+    ],
+    "dcMod": 2,
+    "risk": "Moderate"
+  },
+  {
+    "id": "sith_workshop",
+    "name": "Sith Workshop Upgrade",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_sith_workshop"
+    ],
+    "category": [
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Build Ritual Tool"
+    ],
+    "type": "Workshop",
+    "effect": "A proper Sith workshop supporting more dangerous permanent creations.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Power Core",
+        "qty": 1
+      },
+      {
+        "name": "Tool Parts",
+        "qty": 2
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Low"
+  },
+  {
+    "id": "alchemist_staff",
+    "name": "Lesser Alchemist Staff",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_ritual_staff"
+    ],
+    "category": [
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Build Ritual Tool"
+    ],
+    "type": "Staff",
+    "effect": "A ritual staff or rod for channeling, stabilizing, and controlling alchemy.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Black Alchemical Staff Frame",
+        "qty": 1
+      },
+      {
+        "name": "Ritual Ink",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "mutation_vat",
+    "name": "Mutation Vat",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_mutation_vat"
+    ],
+    "category": [
+      "Ritual Tool",
+      "Creature",
+      "Mutagen",
+      "Abomination"
+    ],
+    "methods": [
+      "Build Ritual Tool"
+    ],
+    "type": "Workshop Tool",
+    "effect": "Required for stable grafting, advanced mutagens, and biological shaping.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Ancient Lab Vat Fluid",
+        "qty": 1
+      },
+      {
+        "name": "Power Core",
+        "qty": 1
+      }
+    ],
+    "dcMod": 5,
+    "risk": "High"
+  },
+  {
+    "id": "spirit_anchor_frame",
+    "name": "Spirit Anchor Frame",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_spirit_anchor"
+    ],
+    "category": [
+      "Ritual Tool",
+      "Relic"
+    ],
+    "methods": [
+      "Build Ritual Tool",
+      "Forge from Scratch"
+    ],
+    "type": "Spirit Tool",
+    "effect": "Contains ghost residue, Force echoes, and soul fragments for later work.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Ghost-Touched Ash",
+        "qty": 1
+      },
+      {
+        "name": "Low-Grade Kyber Splinter",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "dark_forge",
+    "name": "Dark Forge Crucible",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_dark_forge"
+    ],
+    "category": [
+      "Ritual Tool",
+      "Weapon",
+      "Armor",
+      "Relic"
+    ],
+    "methods": [
+      "Build Ritual Tool",
+      "Forge from Scratch"
+    ],
+    "type": "Forge Tool",
+    "effect": "Major forge for Sith weapons, armor, crystals, and relic restoration.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Ancient Sith Forge Coal",
+        "qty": 1
+      },
+      {
+        "name": "Power Core",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "High"
+  },
+  {
+    "id": "staff_restoration",
+    "name": "Staff Restoration Rite",
+    "tree": "Ritual Tools",
+    "nodeIds": [
+      "tool_staff_restoration"
+    ],
+    "category": [
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Build Ritual Tool",
+      "Upgrade Existing Creation"
+    ],
+    "type": "Staff Rite",
+    "effect": "Restores dormant ancient Sith staffs such as Tulak Hord tomb staff stages.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Ancient Sith Bone",
+        "qty": 1
+      },
+      {
+        "name": "Black Kyber Focus",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "High"
+  },
+  {
+    "id": "whisper_charm",
+    "name": "Whisper Charm",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_haunted_talismanry"
+    ],
+    "category": [
+      "Relic"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Imbue Existing Item"
+    ],
+    "type": "Haunted Relic",
+    "effect": "Small charm that warns of spirits, death, fear, or nearby dark side residue.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Memory Ash",
+        "qty": 1
+      },
+      {
+        "name": "Low-Grade Kyber Splinter",
+        "qty": 1
+      }
+    ],
+    "dcMod": 2,
+    "risk": "Moderate"
+  },
+  {
+    "id": "force_static_powder",
+    "name": "Force Static Powder",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_static_primer"
+    ],
+    "category": [
+      "Bomb",
+      "Relic"
+    ],
+    "methods": [
+      "Create Consumable",
+      "Forge from Scratch"
+    ],
+    "type": "Anti-Force Primer",
+    "effect": "A weak static material that irritates Force sensing and concentration.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Cracked Kyber Dust",
+        "qty": 1
+      },
+      {
+        "name": "Smoke Powder",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "ghost_lure",
+    "name": "Ghost Lure",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_lures"
+    ],
+    "category": [
+      "Ritual Tool",
+      "Relic"
+    ],
+    "methods": [
+      "Build Ritual Tool",
+      "Forge from Scratch"
+    ],
+    "type": "Spirit Bait",
+    "effect": "Attracts spirits or echoes; does not control them.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Ghost-Touched Ash",
+        "qty": 1
+      },
+      {
+        "name": "Blood of a Force-Sensitive",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "echo_anchor",
+    "name": "Echo Anchor",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_echo_anchors"
+    ],
+    "category": [
+      "Relic",
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Build Ritual Tool"
+    ],
+    "type": "Echo Anchor",
+    "effect": "Binds weak memories or echoes to items or locations.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Soul Ash",
+        "qty": 1
+      },
+      {
+        "name": "Sith Metal Chain",
+        "qty": 1
+      }
+    ],
+    "dcMod": 5,
+    "risk": "High"
+  },
+  {
+    "id": "spirit_cage",
+    "name": "Spirit Cage",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_spirit_binding"
+    ],
+    "category": [
+      "Relic",
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Build Ritual Tool"
+    ],
+    "type": "Spirit Binding",
+    "effect": "Holds a weak spirit, echo, or fragmented consciousness.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Bound Spirit Shard",
+        "qty": 1
+      },
+      {
+        "name": "Ancient Sith Binding Chain",
+        "qty": 1
+      }
+    ],
+    "dcMod": 7,
+    "risk": "Severe"
+  },
+  {
+    "id": "soul_anchor",
+    "name": "Soul Anchor",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_soul_anchor"
+    ],
+    "category": [
+      "Relic",
+      "Ritual Tool",
+      "Abomination"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Build Ritual Tool",
+      "Build Abomination"
+    ],
+    "type": "Soul Anchor",
+    "effect": "Holds dangerous spirit residue or soul fragments for relics or vessels.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Soul Ash",
+        "qty": 1
+      },
+      {
+        "name": "Black Kyber Focus",
+        "qty": 1
+      }
+    ],
+    "dcMod": 7,
+    "risk": "Severe"
+  },
+  {
+    "id": "anti_force_relic",
+    "name": "Focus-Cracking Talisman",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_anti_force_relics"
+    ],
+    "category": [
+      "Relic",
+      "Ritual Tool"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Build Ritual Tool"
+    ],
+    "type": "Anti-Force Relic",
+    "effect": "Weakens Force focus, sensing, or concentration without total shutdown.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Force-Null Tissue",
+        "qty": 1
+      },
+      {
+        "name": "Cracked Kyber Dust",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "High"
+  },
+  {
+    "id": "soul_furnace_core",
+    "name": "Soul Furnace Core",
+    "tree": "Spirit & Force-Anomaly",
+    "nodeIds": [
+      "spi_soul_furnace"
+    ],
+    "category": [
+      "Relic",
+      "Armor",
+      "Abomination"
+    ],
+    "methods": [
+      "Forge from Scratch",
+      "Build Abomination",
+      "Upgrade Existing Creation"
+    ],
+    "type": "Forbidden Spirit Core",
+    "effect": "A bound spirit or echo powers a major relic, armor, or horror.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Bound Spirit Shard",
+        "qty": 1
+      },
+      {
+        "name": "Unique Catalyst",
+        "qty": 1
+      }
+    ],
+    "dcMod": 10,
+    "risk": "Extreme"
+  },
+  {
+    "id": "corpse_prep",
+    "name": "Corpse Preparation",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_forbidden_anatomy"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination"
+    ],
+    "type": "Abomination Foundation",
+    "effect": "Prepares flesh, organs, bones, and nerves for unnatural construction.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Living Organ",
+        "qty": 1
+      },
+      {
+        "name": "Medical Chemicals",
+        "qty": 1
+      }
+    ],
+    "dcMod": 3,
+    "risk": "Moderate"
+  },
+  {
+    "id": "crawling_hand",
+    "name": "Crawling Hand Servitor",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_servitors"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination"
+    ],
+    "type": "Minor Abomination",
+    "effect": "Small utility flesh construct for carrying, spying, or triggering simple tasks.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Corpse Hand",
+        "qty": 1
+      },
+      {
+        "name": "Preserved Nerve Tissue",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "Moderate"
+  },
+  {
+    "id": "pain_brand",
+    "name": "Pain Obedience Brand",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_pain_brand"
+    ],
+    "category": [
+      "Abomination",
+      "Creature"
+    ],
+    "methods": [
+      "Build Abomination",
+      "Shape Creature"
+    ],
+    "type": "Control Mark",
+    "effect": "Staff-bound pain mark that helps command abominations.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      },
+      {
+        "name": "Sith Metal Spike",
+        "qty": 1
+      }
+    ],
+    "dcMod": 4,
+    "risk": "High"
+  },
+  {
+    "id": "bone_claw_graft",
+    "name": "Bone Claw Graft",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_limb_grafts"
+    ],
+    "category": [
+      "Abomination",
+      "Creature"
+    ],
+    "methods": [
+      "Build Abomination",
+      "Shape Creature"
+    ],
+    "type": "Crude Graft",
+    "effect": "Adds claws, dead hands, extra limbs, or corpse muscle to an abomination body.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Corpse Limb",
+        "qty": 1
+      },
+      {
+        "name": "Preserved Abomination Tendon",
+        "qty": 1
+      }
+    ],
+    "dcMod": 5,
+    "risk": "High"
+  },
+  {
+    "id": "lesser_flesh_horror",
+    "name": "Lesser Flesh Horror Frame",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_lesser_horror"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination"
+    ],
+    "type": "Major Abomination",
+    "effect": "Small/medium combat horror. Before Sith Lord rank, generally limited to one major abomination.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Living Organ",
+        "qty": 1
+      },
+      {
+        "name": "Preserved Abomination Tendon",
+        "qty": 1
+      },
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      }
+    ],
+    "dcMod": 8,
+    "risk": "Severe"
+  },
+  {
+    "id": "rage_heart",
+    "name": "Rage Heart",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_organ_engine"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination"
+    ],
+    "type": "Organ Engine",
+    "effect": "Adds a heart/engine that briefly empowers the horror when wounded or enraged.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Living Organ",
+        "qty": 1
+      },
+      {
+        "name": "Tuk’ata Blood",
+        "qty": 1
+      }
+    ],
+    "dcMod": 6,
+    "risk": "High"
+  },
+  {
+    "id": "hunger_core",
+    "name": "Hunger Core",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_hunger_core"
+    ],
+    "category": [
+      "Abomination",
+      "Armor",
+      "Relic",
+      "Weapon"
+    ],
+    "methods": [
+      "Build Abomination",
+      "Forge from Scratch",
+      "Upgrade Existing Creation"
+    ],
+    "type": "Hunger Source",
+    "effect": "Power source fed by blood, fear, meat, pain, or Force energy.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Pain Essence",
+        "qty": 1
+      },
+      {
+        "name": "Blood of a Force-Sensitive",
+        "qty": 1
+      }
+    ],
+    "dcMod": 7,
+    "risk": "Severe"
+  },
+  {
+    "id": "chimera_frame",
+    "name": "Chimera Body Frame",
+    "tree": "Sith Abomination / Beast Shaping",
+    "nodeIds": [
+      "abm_chimera",
+      "bst_greater_mutation"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination"
+    ],
+    "type": "Chimera Frame",
+    "effect": "Stitches rare beast traits into an unnatural constructed body.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Unique Beast Heart",
+        "qty": 1
+      },
+      {
+        "name": "Rare Creature Organ",
+        "qty": 1
+      }
+    ],
+    "dcMod": 9,
+    "risk": "Extreme"
+  },
+  {
+    "id": "soul_ready_vessel",
+    "name": "Soul-Ready Vessel",
+    "tree": "Sith Abomination / Spirit",
+    "nodeIds": [
+      "abm_soul_vessel",
+      "spi_soul_anchor"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination"
+    ],
+    "type": "Spirit Vessel",
+    "effect": "A body capable of housing spirit residue, echoes, or bound consciousness.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Soul Ash",
+        "qty": 1
+      },
+      {
+        "name": "Living Organ",
+        "qty": 1
+      }
+    ],
+    "dcMod": 9,
+    "risk": "Severe"
+  },
+  {
+    "id": "true_abomination_frame",
+    "name": "True Abomination Frame",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_true_abomination"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination"
+    ],
+    "type": "True Horror",
+    "effect": "A campaign-level independent horror: war body, flesh titan, butcher, or siege beast.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Unique Beast Heart",
+        "qty": 1
+      },
+      {
+        "name": "Dark Nexus Crystal",
+        "qty": 1
+      }
+    ],
+    "dcMod": 12,
+    "risk": "Extreme"
+  },
+  {
+    "id": "ancient_warbody",
+    "name": "Ancient Warbody Restoration",
+    "tree": "Sith Abomination",
+    "nodeIds": [
+      "abm_warbody_restoration"
+    ],
+    "category": [
+      "Abomination"
+    ],
+    "methods": [
+      "Build Abomination",
+      "Upgrade Existing Creation"
+    ],
+    "type": "Ancient Restoration",
+    "effect": "Repairs a dormant ancient abomination, tomb guardian, or failed Sithspawn horror.",
+    "forge": "",
+    "imbue": "",
+    "ingredients": [
+      {
+        "name": "Ancient Warbody Core",
+        "qty": 1
+      },
+      {
+        "name": "Ancient Sith Bone",
+        "qty": 1
+      }
+    ],
+    "dcMod": 12,
+    "risk": "Extreme"
+  }
+];
+
+function defaultState() {
+  const char = makeFreshCharacter();
+  return {
+    activeTab: 'dashboard',
+    activeTree: char.startingFocus || 'sith_artifice',
+    selectedNodeId: TREE_DATA[char.startingFocus || 'sith_artifice']?.nodes?.[0]?.id || null,
+    selectedRecipeId: null,
+    creationFilter: 'All',
+    onboardingComplete: false,
+    campaign: { name: 'Old Republic Dark Side Campaign' },
+    player: { name: '' },
+    characters: [char],
+    activeCharacterId: char.id,
+    settings: { gmMode: false, testMode: false, autosave: true },
+    modal: null,
+    lastSaved: new Date().toISOString()
+  };
+}
+
+function demoCharacter() {
+  const char = makeFreshCharacter();
+  Object.assign(char, {
+    name: 'Darth Veyrath',
+    rank: 'Dark Council Operative',
+    faction: 'Sith Empire',
+    alignment: 'Dark Side',
+    level: 21,
+    xp: 18540,
+    xpNext: 31000,
+    sithInqLevel: 5,
+    intMod: 1,
+    bonusAP: 10,
+    startingFocus: 'sith_artifice',
+    unlockedTrees: ['sith_artifice','dark_compounds','ritual_tools','beast_shaping'],
+    treeUnlockProgress: { basicRitualTracked: {}, beastDissections: 3, spiritHolocrons: 1, boundSithGhost: false },
+    specialUnlocks: { abominatorStaff: false },
+    ritualInsight: [{ tree: 'Beast Shaping', amount: 2 }],
+    unlockedNodes: ['art_foundation','art_cruel_edge','art_dark_plating','art_weapon_channels','art_talisman_etching','cmp_toxicology','cmp_corrosives','cmp_vapors','cmp_oils','cmp_stimulants','tool_field_kit','tool_focus_impl','tool_binding'],
+    ingredients: [
+      ing('Sith-Forged Weapon Base', 'Rare', 'Weapon Base', 1, 'High', 'Restricted', 'Ship Armory'),
+      ing('Paralytic Venom', 'Uncommon', 'Biological', 1, 'Standard', 'Illegal', 'Venom kit'),
+      ing('Alchemical Salts', 'Common', 'Chemical', 4, 'Standard', 'Legal', 'Sealed pouch'),
+      ing('Preserved Nerve Tissue', 'Rare', 'Biological', 0, 'Standard', 'Heretical', 'Cryo vial'),
+      ing('Crystallized Pain Extract', 'Forbidden', 'Ritual', 0, 'Unstable', 'Heretical', 'Ward box'),
+      ing('Tuk’ata Blood', 'Uncommon', 'Biological', 2, 'Standard', 'Illegal', 'Cold vial'),
+      ing('Pain Essence', 'Forbidden', 'Spirit/Force', 1, 'High', 'Heretical', 'Soul phial'),
+      ing('Ritual Ink', 'Uncommon', 'Ritual', 2, 'Standard', 'Restricted', 'Sealed bottle'),
+      ing('Ghost-Touched Ash', 'Rare', 'Spirit/Force', 1, 'Low', 'Heretical', 'Warded tin'),
+      ing('Beast Teeth', 'Common', 'Biological', 3, 'Standard', 'Restricted', 'Bone box'),
+      ing('Sith Metal Slivers', 'Uncommon', 'Mineral/Crystal', 3, 'Standard', 'Restricted', 'Forge tray'),
+      ing('Blood-Reactive Oil', 'Uncommon', 'Chemical', 2, 'Standard', 'Illegal', 'Sealed vial'),
+      ing('Smoke Powder', 'Common', 'Chemical', 4, 'Standard', 'Restricted', 'Bomb kit'),
+      ing('Venom Sac', 'Uncommon', 'Biological', 2, 'Standard', 'Illegal', 'Cold vial'),
+      ing('Tool Parts', 'Common', 'Technological', 5, 'Standard', 'Legal', 'Workshop drawer'),
+      ing('Medical Chemicals', 'Common', 'Chemical', 3, 'Standard', 'Restricted', 'Med locker')
+    ],
+    creations: [
+      creation('Sith Alchemist’s Focus', 'Weapon', 'Focus', 'Stable', 'Maintenance: 1d 12h', true, false, 'Advanced Alchemical Focus', 'Sith Artifice'),
+      creation('Paralytic Edge', 'Weapon', 'Sword', 'Stable', 'Maintenance: 2d 4h', true, false, 'Sith-Forged Weapon', 'Sith Artifice / Dark Compounds'),
+      creation('Dread Leather Hauberk', 'Armor', 'Heavy', 'Maintenance Due', 'Maintenance Due', true, false, 'Reinforced Alchemical Armor', 'Sith Artifice'),
+      creation('Bound Tuk’ata', 'Creature', 'Beast', 'Hungry', 'Feed in: 4h 18m', true, true, 'Sithspawn Creature', 'Beast Shaping'),
+      creation('Experimental Mutagen', 'Compound', 'Compound', 'Unstable', 'Unstable', false, false, 'Volatile Compound', 'Dark Compounds'),
+      creation('Ghost-Piercing Dagger', 'Weapon', 'Dagger', 'Damaged', 'Repair Required', true, false, 'Alchemical Weapon', 'Spirit & Anomaly')
+    ],
+    creatures: [
+      { id: uid(), name: 'Bound Tuk’ata', type: 'Sith-bound War Beast', status: 'Active', base: 'Tuk’ata', level: 5, loyalty: 84, loyaltyRank: 'Loyal', controlMethod: 'Pain Anchor', hunger: 72, nextFeed: '5h 42m', diet: 'Raw Flesh / Pain Essence', maintenance: 'Optimal', traits: ['Pain Tolerance', 'Dark Conditioning', 'Ferocious Instincts', 'Territorial'], abilities: ['Savage Maul', 'Rending Bite', 'Terrifying Roar', 'Leaping Assault'], notes: 'Responds well to displays of power and dominance. Prefers pain-soaked offerings over raw meat.', gmNotes: 'Secretly recognizes fear. Loyalty may shift if shown weakness.' }
+    ],
+    projects: [],
+    notes: 'Demo Sith Alchemist dashboard prototype character.',
+    history: [
+      hist('Unlocked: Sith-Forged Weapon', -1),
+      hist('Unlocked: Sith Venom', -2),
+      hist('Unlocked: Paralytic Edge', -4),
+      hist('Created: Bound Tuk’ata', 0)
+    ]
+  });
+  char.totalAP = totalAPEarned(char);
+  return char;
+}
+
+function ing(name, rarity, type, qty, quality, legality, storage) { return { id: uid(), name, rarity, type, qty, quality, legality, storage, decay: '', reserved: 0, source: 'Character inventory' }; }
+function creation(name, category, type, status, maintenance, major, creatureSlot, subtitle, tree) { return { id: uid(), name, category, type, status, maintenance, major, creatureSlot, subtitle, tree, tier: 'Tier II', traits: [], sideEffects: [], age: '2d 6h', owner: 'Unassigned', gmSecret: false }; }
+function hist(text, ap) { return { id: uid(), when: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text, ap }; }
+function uid() { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4); }
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    if (!parsed.characters || !parsed.characters.length) return defaultState();
+    parsed.characters.forEach(normalizeCharacterForRules);
+    parsed.settings = { gmMode: false, testMode: false, autosave: true, ...(parsed.settings || {}) };
+    parsed.player = parsed.player || { name: '' };
+    parsed.campaign = parsed.campaign || { name: 'Old Republic Dark Side Campaign' };
+    if (typeof parsed.onboardingComplete !== 'boolean') parsed.onboardingComplete = false;
+    parsed.characters.forEach(normalizeCharacterForRules);
+    return parsed;
+  } catch (err) {
+    console.warn(err);
+    return defaultState();
+  }
+}
+function saveState() {
+  try {
+    (state.characters || []).forEach(normalizeCharacterForRules);
+    state.lastSaved = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (err) {
+    console.warn('Save unavailable in this browser/file viewer:', err);
+  }
+}
+function c() { return state.characters.find(x => x.id === state.activeCharacterId) || state.characters[0]; }
+function allNodes() { return Object.values(TREE_DATA).flatMap(t => t.nodes); }
+function nodeById(id) { return allNodes().find(n => n.id === id); }
+function recipeById(id) { return RECIPES.find(r => r.id === id) || null; }
+function getRank(char, nodeId) { return char.nodeRanks?.[nodeId] || (char.unlockedNodes.includes(nodeId) ? 1 : 0); }
+function nodeCost(node, rank = 1) { return node.cost * rank; }
+function spentAP(char) { return char.unlockedNodes.reduce((sum, id) => { const n = nodeById(id); return sum + (n ? nodeCost(n, getRank(char, id)) : 0); }, 0); }
+function startingAlchemyAP(char) { return Math.max(6, 8 + Number(char.intMod || 0)); }
+function perLevelAlchemyAP(char) { return Math.max(3, 5 + Number(char.intMod || 0)); }
+function totalAPEarned(char) {
+  const inq = Math.max(1, Number(char.sithInqLevel || 1));
+  const bonus = Number(char.bonusAP || 0);
+  return Math.max(0, startingAlchemyAP(char) + Math.max(0, inq - 1) * perLevelAlchemyAP(char) + bonus);
+}
+function apFormulaText(char) {
+  const inq = Math.max(1, Number(char.sithInqLevel || 1));
+  return `${totalAPEarned(char)} AP = ${startingAlchemyAP(char)} starting + ${Math.max(0, inq - 1)} level gain(s) × ${perLevelAlchemyAP(char)} + ${Number(char.bonusAP || 0)} GM bonus`;
+}
+function normalizeCharacterForRules(char) {
+  char.unlockedNodes = Array.isArray(char.unlockedNodes) ? char.unlockedNodes : [];
+  char.nodeRanks = char.nodeRanks || {};
+  char.bonusAP = Number(char.bonusAP || 0);
+  char.sithInqLevel = Math.max(1, Number(char.sithInqLevel || 1));
+  char.intMod = Number(char.intMod || 0);
+  char.totalAP = totalAPEarned(char);
+  return char;
+}
+function availableAP(char) { normalizeCharacterForRules(char); return totalAPEarned(char) - spentAP(char); }
+function majorLimit(char) { return Math.max(0, 1 + Number(char.sithInqLevel || 0) + Number(char.intMod || 0)); }
+function creatureLimit(char) { return Math.max(0, 1 + Number(char.intMod || 0)); }
+function majorUsed(char) { return (char.creations || []).filter(x => x.major && !['Destroyed','Retired','Released'].includes(x.status)).length; }
+function creatureUsed(char) { return (char.creatures || []).filter(x => x.status !== 'Dismissed' && x.status !== 'Destroyed').length; }
+function unstableCount(char) { return (char.creations || []).filter(x => ['Unstable','Volatile','Damaged','Hungry','Maintenance Due','Cursed','Haunted'].includes(x.status)).length; }
+function warnings(char) {
+  const arr = [];
+  if (majorUsed(char) > majorLimit(char)) arr.push({type:'Major Creation Limit', text:'Major alchemical creations exceed safe capacity.'});
+  if (creatureUsed(char) > creatureLimit(char)) arr.push({type:'Controlled Creature Limit', text:'Controlled creatures exceed safe capacity.'});
+  if (unstableCount(char) > 0) arr.push({type:'Unstable Creations', text:`${unstableCount(char)} creations require GM/player attention.`});
+  (char.creations || []).filter(x => ['Hungry','Maintenance Due','Damaged','Unstable'].includes(x.status)).slice(0,4).forEach(x => arr.push({type:x.status, text:`${x.name}: ${x.maintenance}`}));
+  if ((char.unlockedNodes || []).includes('cmp_paralytic')) {
+    const missingNerve = (char.ingredients || []).find(x => x.name === 'Preserved Nerve Tissue');
+    if (!missingNerve || missingNerve.qty < 1) arr.push({type:'Preserved Nerve Tissue', text:'Low stock may disrupt Paralytic crafting.'});
+  }
+  return arr;
+}
+function safe(str) { return String(str ?? '').replace(/[&<>'"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m])); }
+function today() { return new Date().toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+function render() {
+  const char = c();
+  if (!state.onboardingComplete) {
+    document.getElementById('app').innerHTML = renderOnboarding(char) + (state.modal ? renderModal() : '');
+    return;
+  }
+  document.getElementById('app').innerHTML = `
+    <div class="app-shell">
+      ${renderTopbar()}
+      <main class="main">${renderTab(char)}</main>
+      ${state.modal ? renderModal() : ''}
+    </div>
+  `;
+}
+
+
+function renderOnboarding(char) {
+  const suggestedAP = Math.max(6, 8 + Number(char.intMod || 0));
+  return `
+    <div class="app-shell onboarding-shell">
+      <header class="topbar onboarding-top">
+        <div class="title-row">
+          <div class="sith-mark">✥</div>
+          <div class="title-block"><div class="app-title">FORCE ALCHEMY</div><div class="sith-runes">profile initiation · character binding · alchemical access</div></div>
+          <div class="window-controls"><button class="icon-btn" data-action="help">?</button></div>
+        </div>
+      </header>
+      <main class="main onboarding-main">
+        <section class="onboarding-hero panel">
+          <div>
+            <div class="section-kicker">Initial Setup</div>
+            <h1 class="page-title">Create Profile / Bind Character</h1>
+            <p class="effect-text">This is the first screen players should see. Create a player profile, create or personalize a character, set the starting alchemy values, then enter the saved Force Alchemy interface.</p>
+            <div class="onboarding-steps">
+              <span class="active">1 Profile</span>
+              <span class="active">2 Character</span>
+              <span>3 Dashboard</span>
+            </div>
+          </div>
+          <div class="setup-sigil">△</div>
+        </section>
+
+        <section class="onboarding-grid">
+          <div class="panel">
+            <h3 class="panel-title">Player Profile</h3>
+            <div class="form-grid">
+              <label class="wide">Player Display Name
+                <input id="setup-player" class="input" placeholder="Example: Gage" value="${safe(state.player?.name || '')}">
+              </label>
+              <label class="wide">Campaign Name
+                <input id="setup-campaign" class="input" placeholder="Old Republic Dark Side Campaign" value="${safe(state.campaign?.name || 'Old Republic Dark Side Campaign')}">
+              </label>
+            </div>
+            <p class="tiny subtle">This data autosaves to this browser. Later, this would become true account/login data with cloud saving.</p>
+          </div>
+
+          <div class="panel">
+            <h3 class="panel-title">Character Identity</h3>
+            <div class="form-grid">
+              <label>Character Name
+                <input id="setup-char-name" class="input" value="${safe(char.name || 'New Sith Alchemist')}">
+              </label>
+              <label>Sith Rank / Title
+                <input id="setup-rank" class="input" value="${safe(char.rank || 'Sith Initiate')}">
+              </label>
+              <label>Class
+                <select id="setup-class" class="input">
+                  ${['Sith Initiate','Sith Inquisitor','Sith Apprentice','Sith Lord'].map(x=>`<option ${x===char.className?'selected':''}>${x}</option>`).join('')}
+                </select>
+              </label>
+              <label>Path
+                <select id="setup-path" class="input">
+                  ${['Sith Alchemist','Sith Assassin','Sith Shadow','Sith Sorcerer','Custom Sith Path'].map(x=>`<option ${x===char.path?'selected':''}>${x}</option>`).join('')}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3 class="panel-title">Starting Alchemy Values</h3>
+            <div class="form-grid">
+              <label>Character Level
+                <input id="setup-level" type="number" class="input" min="6" value="${Number(char.level || 6)}">
+              </label>
+              <label>Sith Inquisitor Level
+                <input id="setup-inq" type="number" class="input" min="1" max="5" value="${Number(char.sithInqLevel || 1)}">
+              </label>
+              <label>Intelligence Modifier
+                <input id="setup-int" type="number" class="input" value="${Number(char.intMod || 0)}">
+              </label>
+              <label class="wide">Calculated Alchemy Points
+                <input class="input" readonly value="${apFormulaText(char)}">
+              </label>
+              <div class="wide unlock-note"><b>Fresh Start:</b> New characters begin with only their chosen starting tree available. No nodes, recipes, ingredients, crafted items, creatures, or projects are preloaded.</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3 class="panel-title">Starting Focus</h3>
+            <div class="focus-grid">
+              ${Object.entries(TREE_DATA).slice(0,6).map(([id,t], idx)=>`<label class="focus-card ${idx===0?'active':''}"><input type="radio" name="setup-focus" value="${id}" ${idx===0?'checked':''}><span class="hex-icon ${t.colorClass}">${t.icon}</span><b>${safe(t.name)}</b><small>${safe(t.description)}</small></label>`).join('')}
+            </div>
+          </div>
+        </section>
+
+        <section class="setup-actions panel">
+          <button class="red-btn huge-btn" data-action="complete-onboarding">Create Profile and Enter App</button>
+          <button class="blue-btn huge-btn" data-action="import-build">Import Saved Character</button>
+          <p class="tiny subtle">After this, the app opens to the dashboard and remembers this profile whenever the same browser opens the link again.</p>
+        </section>
+      </main>
+    </div>`;
+}
+
+function renderTopbar() {
+  return `
+    <header class="topbar">
+      <div class="title-row">
+        <div class="sith-mark">✥</div>
+        <div class="title-block"><div class="app-title">FORCE ALCHEMY</div><div class="sith-runes">through pain we shape · through alchemy we control</div></div>
+        <div class="window-controls"><button class="icon-btn" data-action="help">?</button><button class="icon-btn" data-action="toggle-gm">${state.settings.gmMode ? '⚙' : '⚙'}</button><button class="icon-btn" data-action="save">×</button></div>
+      </div>
+      <nav class="tabs">
+        ${TABS.map(([id, label]) => `<button class="tab ${state.activeTab === id ? 'active' : ''}" data-tab="${id}">${label}</button>`).join('')}
+      </nav>
+    </header>`;
+}
+
+function renderTab(char) {
+  switch (state.activeTab) {
+    case 'trees': return renderTrees(char);
+    case 'crafting': return renderCrafting(char);
+    case 'creations': return renderCreations(char);
+    case 'bestiary': return renderBestiary(char);
+    case 'inventory': return renderInventory(char);
+    case 'codex': return renderCodex(char);
+    case 'character': return renderCharacter(char);
+    default: return renderDashboard(char);
+  }
+}
+
+function renderDashboard(char) {
+  const warn = warnings(char);
+  const ri = char.ritualInsight?.[0];
+  return `
+  <h1 class="page-title">Dashboard / Overview</h1>
+  <section class="dashboard-grid">
+    <div class="left-stack">
+      <div class="panel">
+        <h3 class="panel-title">Sith Profile</h3>
+        <div class="profile-card">
+          <div class="portrait"></div>
+          <div class="profile-info">
+            <h2>${safe(char.name)}</h2>
+            <div class="red">${safe(char.path)}</div>
+            <div class="subtle">${safe(char.rank)}</div>
+            <div class="stat-line"><span>Level</span><b>${char.level}</b></div>
+            <div class="xpbar"><span style="width:${Math.min(100, (char.xp / char.xpNext) * 100)}%"></span></div>
+            <div class="stat-line"><span>Mastery</span><span>${totalAPEarned(char) * 95}</span></div>
+            <div class="stat-line"><span>Influence</span><span>${majorUsed(char) * 970}</span></div>
+            <button class="red-btn" data-tab="character">View Character</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel"><h3 class="panel-title">Alchemy Points</h3><div class="meter-disc"><div class="disc" style="--angle:${Math.max(25, availableAP(char)/Math.max(1,totalAPEarned(char))*360)}deg">${availableAP(char)}</div><div><div class="green">AVAILABLE</div><div>${spentAP(char)} / ${totalAPEarned(char)} Total Spent</div><button class="red-btn" data-tab="trees">View Alchemy Trees</button></div></div></div>
+      <div class="panel"><h3 class="panel-title">Ritual Insight</h3><div class="meter-disc"><div class="disc red-disc" style="--angle:150deg">${ri ? ri.amount : 0}</div><div><div class="red">INSIGHT LEVEL</div><div>${ri ? safe(ri.tree) + ' Only' : 'None'}</div><button class="red-btn" data-action="grant-rip">Grant Insight</button></div></div></div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <h3 class="panel-title">Alchemy Overview</h3>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-icon">⬡</div><label>Major Creations</label><div class="num">${majorUsed(char)}<small> / ${majorLimit(char)}</small></div><div>Used</div></div>
+          <div class="kpi"><div class="kpi-icon purple">♞</div><label>Controlled Creatures</label><div class="num">${creatureUsed(char)}<small> / ${creatureLimit(char)}</small></div><div>Used</div></div>
+          <div class="kpi"><div class="kpi-icon warn">!</div><label>Unstable Creations</label><div class="num">${unstableCount(char)}<small> / ${char.creations.length}</small></div><div>Active</div></div>
+          <div class="kpi"><div class="kpi-icon red">!</div><label>Active Warnings</label><div class="num">${warn.length}</div><div>Now</div></div>
+        </div>
+        <div class="status-graph"><span>Overall Stability:</span><b class="${warn.length ? 'red' : 'green'}">${warn.length ? 'Unstable' : 'Stable'}</b></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="panel"><h3 class="panel-title">Recent Unlocks</h3><div class="list">${char.history.slice(-5).reverse().map(h=>`<div class="list-row one-line"><span>${safe(h.text)}</span><span class="subtle">${h.when}</span></div>`).join('')}</div><br><button class="red-btn" data-tab="trees">View All Unlocks</button></div>
+        <div class="panel"><h3 class="panel-title">Next Maintenance</h3><div class="list">${char.creations.filter(x=>x.maintenance).slice(0,5).map(x=>`<div class="list-row"><span class="glyph">⌘</span><span>${safe(x.name)}</span><span class="subtle">${safe(x.maintenance)}</span></div>`).join('')}</div><br><button class="red-btn" data-tab="creations">View Maintenance Schedule</button></div>
+      </div>
+    </div>
+    <div class="right-stack">
+      <div class="panel"><h3 class="panel-title">System Status</h3><div style="min-height:205px;display:grid;place-items:center;text-align:center"><div><div style="font-size:100px;color:var(--red);text-shadow:0 0 30px var(--red-glow);">△</div><div class="subtle">SYSTEM STABILITY</div><div class="page-title" style="margin:8px 0">${warn.length ? 'UNSTABLE' : 'STABLE'}</div><button class="red-btn" data-tab="creations">View Warnings (${warn.length})</button></div></div></div>
+      <div class="panel"><h3 class="panel-title">Current Warnings</h3><div class="list">${warn.slice(0,4).map(w=>`<div class="list-row"><span class="glyph red">!</span><span><b class="red">${safe(w.type)}</b><br><span class="subtle">${safe(w.text)}</span></span><button class="ghost-btn" data-tab="creations">View</button></div>`).join('') || `<div class="green">No active warnings.</div>`}</div></div>
+    </div>
+    <div class="bottom-actions"><h3 class="panel-title" style="text-align:center">Quick Actions</h3><div class="quick-actions"><button class="red-btn big-action" data-tab="trees"><span>☊</span>View Trees</button><button class="red-btn big-action" data-tab="crafting"><span>⚗</span>Crafting Lab</button><button class="red-btn big-action" data-tab="creations"><span>⬢</span>Active Creations</button><button class="red-btn big-action" data-tab="inventory"><span>▣</span>Inventory</button></div></div>
+  </section>`;
+}
+
+function renderTrees(char) {
+  const activeTree = TREE_DATA[state.activeTree];
+  const selected = nodeById(state.selectedNodeId) || activeTree.nodes[0];
+  return `<h1 class="page-title">Alchemy Trees</h1><section class="tree-layout">
+    <aside class="panel tree-sidebar"><h3 class="panel-title">Alchemy Trees</h3>${Object.entries(TREE_DATA).map(([id,t])=>`<div class="tree-select ${state.activeTree===id?'active':''}" data-tree="${id}"><div class="hex-icon ${t.colorClass}">${t.icon}</div><div><b>${safe(t.name)}</b><br><span class="subtle">${t.tier} · ${t.progress}</span></div><span class="subtle">›</span></div>`).join('')}<div style="margin-top: auto"><div class="panel-title">Available AP</div><div class="meter-disc"><div class="disc" style="width:70px;height:70px;font-size:32px">${availableAP(char)}</div><div><button class="red-btn" data-action="grant-ap">Grant AP</button></div></div></div></aside>
+    <div class="tree-canvas">
+      <div class="tree-header"><h2>${safe(activeTree.name)}</h2><div class="subtle">${safe(activeTree.tier)} · Alchemy Tree</div></div>
+      ${renderTreeSvg(activeTree, char)}
+      ${activeTree.nodes.map(n => renderNode(n, char)).join('')}
+    </div>
+    <aside class="panel node-panel">${renderNodePanel(selected, char, activeTree)}</aside>
+  </section>`;
+}
+function renderTreeSvg(tree, char) {
+  const paths = [];
+  tree.nodes.forEach(n => (n.prereq||[]).forEach(p => { const from = tree.nodes.find(x=>x.id===p); if (from) paths.push(`<line x1="${from.x}%" y1="${from.y}%" x2="${n.x}%" y2="${n.y}%" stroke="${char.unlockedNodes.includes(n.id)?'rgba(255,30,30,.7)':'rgba(150,150,150,.26)'}" stroke-width="2" />`); }));
+  return `<svg>${paths.join('')}</svg>`;
+}
+function statusForNode(node, char) {
+  if (char.unlockedNodes.includes(node.id)) return 'unlocked';
+  if (node.gate === 'story') return prereqsMet(node, char) ? 'story' : 'locked';
+  if (node.gate === 'gm' || node.gate === 'force') return prereqsMet(node, char) ? 'gm' : 'locked';
+  if (!prereqsMet(node, char)) return 'locked';
+  if (availableAP(char) < node.cost) return 'unaffordable';
+  return 'available';
+}
+function prereqsMet(node, char) { return (node.prereq || []).every(id => char.unlockedNodes.includes(id)) && (node.requiresNodes || []).every(id => char.unlockedNodes.includes(id)); }
+function renderNode(node, char) {
+  const status = statusForNode(node, char);
+  const rank = getRank(char, node.id);
+  const label = status === 'unlocked' ? `${rank}/${node.rankMax || 1}` : `0/${node.rankMax || 1}`;
+  return `<button class="node ${status} ${state.selectedNodeId===node.id?'selected':''}" style="left:${node.x}%; top:${node.y}%" data-node="${node.id}"><div class="node-core">${status==='locked'||status==='unaffordable'?'🔒':node.icon}</div><div class="node-title">${safe(node.name)}</div><div class="node-rank">${label}</div></button>`;
+}
+function renderNodePanel(node, char, tree) {
+  const st = statusForNode(node, char);
+  const rank = getRank(char, node.id);
+  const req = (node.prereq||[]).map(id => nodeById(id)?.name || id);
+  const crossReq = (node.requiresNodes||[]).map(id => nodeById(id)?.name || id);
+  const gateLabel = node.gate === 'story' ? 'Story-Gated' : node.gate === 'gm' ? 'GM Approval' : node.gate === 'force' ? 'Force Technique-Gated' : 'Open';
+  return `<h3 class="panel-title">Node Details</h3>
+    <h2 class="page-title" style="font-size:28px">${safe(node.name)}</h2>
+    <div class="stack"><span class="badge red-badge">Tier ${safe(node.tier)}</span><span class="badge gold-badge">${node.cost} AP</span><span class="badge ${st==='unlocked'?'green-badge':st==='available'?'gold-badge':'blue-badge'}">${st}</span></div>
+    <p class="effect-text">${safe(node.effect)}</p>
+    <div class="list">
+      <div class="list-row one-line"><b>Tree</b><span>${safe(tree.name)}</span></div>
+      <div class="list-row one-line"><b>Type</b><span>${safe(node.type)}</span></div>
+      <div class="list-row one-line"><b>Unlock</b><span>${safe(gateLabel)}</span></div>
+      <div class="list-row one-line"><b>Rank</b><span>${rank}/${node.rankMax||1}</span></div>
+      <div class="list-row one-line"><b>DC</b><span>${node.dc}</span></div>
+      <div class="list-row one-line"><b>Risk</b><span>${safe(node.risk)}</span></div>
+    </div>
+    <h4 class="red">Unlocks Components / Formulae</h4>
+    <div class="component-pill-list">${(node.unlocks||[]).map(u=>`<span class="component-pill">${safe(u)}</span>`).join('') || '<span class="subtle">No component list assigned.</span>'}</div>
+    <h4 class="red">Compatible With</h4><div class="subtle">${(node.compatible||[]).map(safe).join(', ') || 'Special / GM defined'}</div>
+    <h4 class="red">Prerequisites</h4><div class="subtle">${req.length ? req.map(safe).join(', ') : 'None'}</div>
+    ${crossReq.length ? `<h4 class="gold">Cross-Tree Requirements</h4><div class="subtle">${crossReq.map(safe).join(', ')}</div>` : ''}
+    <h4 class="red">Crafting Checks</h4><div class="subtle">${(node.checks||[]).map(safe).join(', ') || 'None'}</div>
+    <br>
+    <div class="grid">
+      ${st === 'unlocked' && rank < (node.rankMax||1) ? `<button class="red-btn" data-action="rank-node" data-id="${node.id}">Increase Rank (${node.cost} AP)</button>` : ''}
+      ${st === 'available' ? `<button class="red-btn" data-action="unlock-node" data-id="${node.id}">Unlock Node</button>` : ''}
+      ${st === 'story' || st === 'gm' ? `<button class="blue-btn" data-action="request-approval" data-id="${node.id}">Request GM Approval</button>` : ''}
+      ${st === 'unlocked' ? `<button class="ghost-btn" data-action="refund-node" data-id="${node.id}">Refund Node</button>` : ''}
+      <button class="ghost-btn" data-action="wishlist-node" data-id="${node.id}">Add to Wishlist</button>
+    </div>`;
+}
+
+function ensureCraftingConfig() {
+  state.crafting = { projectType:'Craft New Item', baseCategory:'Melee Weapon', baseItem:'Vibroblade', method:'Forge from Scratch', selectedComponents:[], ...(state.crafting || {}) };
+  state.crafting.selectedComponents = Array.isArray(state.crafting.selectedComponents) ? state.crafting.selectedComponents : [];
+  return state.crafting;
+}
+function craftingBaseItems(category) {
+  const map = {
+    'Melee Weapon':['Vibroblade','Sith Sword','Dagger','Spear','Two-Handed Blade'],
+    'Thrown Weapon':['Throwing Dagger','Shuriken Disc','Needle Dart'],
+    'Lightsaber Hilt':['Single Hilt','Dual Hilt','Staff Hilt','Curved Hilt'],
+    'Armor':['Light Armor','Medium Armor','Heavy Armor','Sith Robes','Living Armor Host'],
+    'Mask / Helmet':['Sith Mask','Helmet','Breathing Mask'],
+    'Gauntlet / Bracer':['Gauntlet','Bracer','Clawed Glove'],
+    'Relic':['Talisman','Ring','Amulet','Totem','Holocron Shard'],
+    'Bomb':['Grenade','Flask','Mine','Vapor Charge'],
+    'Mutagen':['Elixir','Injection','Draught','Feral Mutagen'],
+    'Creature':['Tuk’ata','Hssiss','K’lor’slug','Custom Sith Beast'],
+    'Ritual Tool':['Staff','Crucible','Spirit Jar','Binding Chains','Mutation Vat'],
+    'Abomination':['Abomination Frame','Living Armor Host','War Horror','Chimera']
+  };
+  return map[category] || ['Custom Base'];
+}
+
+const RISK_ORDER = ['Low','Moderate','High','Severe','Extreme'];
+function riskIndex(risk) { return Math.max(0, RISK_ORDER.indexOf(risk || 'Low')); }
+function riskFromIndex(i) { return RISK_ORDER[Math.max(0, Math.min(RISK_ORDER.length - 1, i))] || 'Low'; }
+function diceLabel(dice) {
+  if (!dice || !dice.count || !dice.sides) return '';
+  const bonus = dice.flat ? `${dice.flat > 0 ? '+' : ''}${dice.flat}` : '';
+  return `${dice.count}d${dice.sides}${bonus}`;
+}
+function addDice(list, label) { if (label && !list.includes(label)) list.push(label); }
+function componentSlotCost(comp) {
+  const t = String(comp.type || '').toLowerCase();
+  const n = String(comp.name || '').toLowerCase();
+  if (t.includes('forbidden') || t.includes('true horror') || n.includes('true abomination')) return 5;
+  if (t.includes('major') || t.includes('apex') || t.includes('soul furnace') || t.includes('greater') || n.includes('crystal matrix')) return 3;
+  if (t.includes('standard') || t.includes('template') || t.includes('engine') || t.includes('anchor')) return 2;
+  return 1;
+}
+function baseItemProfile(cfg) {
+  const item = cfg.baseItem || 'Custom Base';
+  const cat = cfg.baseCategory || 'Melee Weapon';
+  const profiles = {
+    'Vibroblade': {kind:'weapon', attack:0, damage:{count:2,sides:6,flat:0}, damageType:'slashing', capacity:3},
+    'Sith Sword': {kind:'weapon', attack:1, damage:{count:2,sides:8,flat:0}, damageType:'slashing', capacity:4},
+    'Dagger': {kind:'weapon', attack:0, damage:{count:1,sides:4,flat:0}, damageType:'piercing', capacity:2},
+    'Spear': {kind:'weapon', attack:0, damage:{count:1,sides:8,flat:0}, damageType:'piercing', capacity:3},
+    'Two-Handed Blade': {kind:'weapon', attack:0, damage:{count:2,sides:10,flat:0}, damageType:'slashing', capacity:4},
+    'Throwing Dagger': {kind:'weapon', attack:0, damage:{count:1,sides:4,flat:0}, damageType:'piercing', capacity:2},
+    'Shuriken Disc': {kind:'weapon', attack:0, damage:{count:1,sides:6,flat:0}, damageType:'slashing', capacity:2},
+    'Needle Dart': {kind:'weapon', attack:1, damage:{count:1,sides:4,flat:0}, damageType:'piercing', capacity:1},
+    'Single Hilt': {kind:'weapon', attack:0, damage:{count:2,sides:8,flat:0}, damageType:'energy', capacity:3},
+    'Dual Hilt': {kind:'weapon', attack:0, damage:{count:2,sides:8,flat:0}, damageType:'energy', capacity:4},
+    'Staff Hilt': {kind:'weapon', attack:0, damage:{count:2,sides:8,flat:0}, damageType:'energy', capacity:4},
+    'Curved Hilt': {kind:'weapon', attack:1, damage:{count:2,sides:8,flat:0}, damageType:'energy', capacity:3},
+    'Light Armor': {kind:'armor', defense:3, dr:0, capacity:3},
+    'Medium Armor': {kind:'armor', defense:5, dr:1, capacity:4},
+    'Heavy Armor': {kind:'armor', defense:7, dr:2, capacity:5},
+    'Sith Robes': {kind:'armor', defense:2, dr:0, capacity:3},
+    'Living Armor Host': {kind:'armor', defense:5, dr:1, capacity:5},
+    'Sith Mask': {kind:'relic', capacity:3},
+    'Helmet': {kind:'relic', defense:1, capacity:2},
+    'Breathing Mask': {kind:'relic', capacity:2},
+    'Gauntlet': {kind:'relic', attack:0, capacity:3},
+    'Bracer': {kind:'relic', defense:1, capacity:2},
+    'Clawed Glove': {kind:'weapon', attack:0, damage:{count:1,sides:6,flat:0}, damageType:'slashing', capacity:3},
+    'Talisman': {kind:'relic', capacity:3},
+    'Ring': {kind:'relic', capacity:2},
+    'Amulet': {kind:'relic', capacity:3},
+    'Totem': {kind:'relic', capacity:3},
+    'Holocron Shard': {kind:'relic', capacity:4},
+    'Grenade': {kind:'compound', damage:{count:2,sides:6,flat:0}, damageType:'varies', capacity:2},
+    'Flask': {kind:'compound', damage:{count:1,sides:6,flat:0}, damageType:'varies', capacity:2},
+    'Mine': {kind:'compound', damage:{count:3,sides:6,flat:0}, damageType:'varies', capacity:3},
+    'Vapor Charge': {kind:'compound', damage:{count:0,sides:0,flat:0}, damageType:'condition', capacity:2},
+    'Elixir': {kind:'mutagen', capacity:2},
+    'Injection': {kind:'mutagen', capacity:2},
+    'Draught': {kind:'mutagen', capacity:2},
+    'Feral Mutagen': {kind:'mutagen', capacity:4},
+    'Tuk’ata': {kind:'creature', attack:3, damage:{count:1,sides:8,flat:1}, capacity:4},
+    'Hssiss': {kind:'creature', attack:4, damage:{count:1,sides:8,flat:2}, capacity:4},
+    'K’lor’slug': {kind:'creature', attack:2, damage:{count:1,sides:6,flat:0}, capacity:3},
+    'Custom Sith Beast': {kind:'creature', attack:3, damage:{count:1,sides:8,flat:0}, capacity:4},
+    'Staff': {kind:'relic', attack:0, damage:{count:1,sides:6,flat:0}, damageType:'bludgeoning', capacity:4},
+    'Crucible': {kind:'tool', capacity:3},
+    'Spirit Jar': {kind:'tool', capacity:3},
+    'Binding Chains': {kind:'tool', capacity:3},
+    'Mutation Vat': {kind:'tool', capacity:5},
+    'Abomination Frame': {kind:'creature', attack:4, damage:{count:1,sides:10,flat:2}, capacity:5},
+    'War Horror': {kind:'creature', attack:6, damage:{count:2,sides:8,flat:2}, capacity:6},
+    'Chimera': {kind:'creature', attack:5, damage:{count:2,sides:6,flat:2}, capacity:5}
+  };
+  const fallback = cat.includes('Weapon') || cat.includes('Lightsaber') ? {kind:'weapon', attack:0, damage:{count:1,sides:8,flat:0}, damageType:'varies', capacity:3}
+    : cat.includes('Armor') ? {kind:'armor', defense:4, dr:0, capacity:3}
+    : cat.includes('Bomb') ? {kind:'compound', damage:{count:2,sides:6,flat:0}, damageType:'varies', capacity:2}
+    : cat.includes('Mutagen') ? {kind:'mutagen', capacity:2}
+    : cat.includes('Creature') || cat.includes('Abomination') ? {kind:'creature', attack:3, damage:{count:1,sides:8,flat:0}, capacity:4}
+    : {kind:'relic', capacity:3};
+  return { name:item, ...fallback, ...(profiles[item] || {}) };
+}
+function methodCapacityModifier(method) {
+  if (method === 'Forge from Scratch') return 1;
+  if (method === 'Imbue Existing Item') return -1;
+  if (method === 'Upgrade Existing Creation') return -1;
+  if (method === 'Build Abomination') return 1;
+  return 0;
+}
+function componentMechanicalEffect(comp, cfg) {
+  const id = comp.id;
+  const out = { attack:0, damageFlat:0, armor:0, dr:0, save:0, charges:0, duration:'', bonusDice:[], ongoing:[], traits:[], notes:[] };
+  const add = (k,v)=>out[k]=(out[k]||0)+v;
+  const trait = t=>out.traits.push(t);
+  const note = t=>out.notes.push(t);
+  if (['sith_weapon_base','ritual_knife'].includes(id)) { add('attack',1); trait('Sith-forged foundation'); }
+  if (id === 'serrated_edge') { addDice(out.ongoing,'1d4 bleed/round'); add('save',1); trait('Bleeding wounds'); }
+  if (id === 'tendon_edge') { add('damageFlat',1); add('save',2); trait('Movement-crippling strike'); }
+  if (id === 'blackened_plating') { add('armor',1); trait('Fear-marked plating'); }
+  if (id === 'pain_hardened_armor') { add('armor',1); add('dr',1); trait('Hardens after damage'); note('Conditional: strongest after wearer is injured.'); }
+  if (id === 'fear_mask') { add('save',2); trait('+2 Intimidation / dread pressure'); }
+  if (id === 'blood_reservoir') { add('charges',1); addDice(out.bonusDice,'+1d6 charged damage'); trait('Stores blood/rage/pain charges'); }
+  if (id === 'ritual_grip') { add('attack',1); trait('+2 vs disarm / focus pressure'); }
+  if (id === 'crystal_matrix') { add('attack',1); addDice(out.bonusDice,'+1d8 dark side flare'); add('save',2); trait('Rage-reactive blade resonance'); }
+  if (id === 'ghost_edge') { add('attack',1); addDice(out.bonusDice,'+1d6 vs spirits'); trait('Damages spirits/echoes'); }
+  if (id === 'living_plate_seed') { add('armor',2); add('dr',1); trait('Living armor reaction'); note('Counts as a Major Creation and may demand maintenance.'); }
+  if (id === 'watching_mask') { add('save',2); trait('Semi-aware warning relic'); note('GM Secret Roll recommended.'); }
+  if (id === 'basic_sith_venom') { add('save',1); addDice(out.ongoing,'1d4 poison'); trait('Basic poison delivery'); }
+  if (id === 'acid_flask') { addDice(out.bonusDice,'+1d6 acid'); trait('Corrosive damage'); }
+  if (id === 'choking_vapor') { add('save',1); trait('Small choking cloud'); }
+  if (id === 'rage_stimulant') { add('attack',1); add('damageFlat',1); trait('Temporary rage stimulant'); out.duration='1 encounter'; }
+  if (id === 'nerve_lock_venom') { add('save',3); trait('Slow / partial paralysis'); }
+  if (id === 'bone_eating_acid') { addDice(out.bonusDice,'+2d6 acid'); add('save',2); trait('Armor/bone corrosion'); }
+  if (id === 'fear_vapor') { add('save',2); trait('Fear / hallucination cloud'); }
+  if (id === 'beast_blood_base') { add('save',1); trait('Mutagen foundation'); out.duration='1 scene'; }
+  if (id === 'hssiss_shadow_serum') { add('save',2); trait('Shadow cloak / brief invisibility'); out.duration='1 encounter'; }
+  if (id === 'klor_acid_mutagen') { addDice(out.bonusDice,'Acid spit 2d6'); add('save',2); trait('Acid spit / acidic saliva'); out.duration='1 encounter'; }
+  if (id === 'tukata_predator_serum') { add('attack',2); add('damageFlat',2); trait('Claws, scent, speed'); out.duration='1 encounter'; }
+  if (id === 'terentatek_rage') { add('attack',2); add('damageFlat',3); add('dr',2); trait('Rage + limited Force resistance'); out.duration='1 encounter'; }
+  if (id === 'force_static_bomb') { add('save',3); trait('Force-sense disruption'); }
+  if (id === 'plague_culture') { add('save',3); trait('Disease culture / rot infection'); }
+  if (id === 'true_feral_catalyst') { add('attack',3); add('damageFlat',4); add('dr',2); add('save',3); trait('Feral beastform'); out.duration='1 encounter'; }
+  if (id === 'trait_extraction') { trait('Prepared beast trait'); }
+  if (id === 'obedience_brand') { trait('Creature obedience + control'); }
+  if (id === 'minor_beast_mutation') { add('attack',1); add('damageFlat',1); trait('Minor beast mutation'); }
+  if (id === 'predator_template') { add('attack',2); add('damageFlat',1); trait('Pounce / predator senses'); }
+  if (id === 'shadow_template') { add('save',1); trait('Stealth / light-drinking skin'); }
+  if (id === 'boneplate_template') { add('armor',2); add('dr',1); trait('Boneplate / dense hide'); }
+  if (id === 'force_hunter_instinct') { add('attack',1); add('save',2); trait('Force-scent / anti-Jedi aggression'); }
+  if (id === 'apex_beast_template') { add('attack',3); add('damageFlat',3); add('armor',2); add('dr',2); trait('Apex Sith beast variant'); }
+  if (id === 'field_kit') { trait('Enables field crafting'); }
+  if (id === 'binding_chain') { trait('Safer containment / restraint'); }
+  if (id === 'sith_workshop') { trait('Enables Sith Workshop crafting'); }
+  if (id === 'alchemist_staff') { add('save',1); trait('Ritual stabilization focus'); }
+  if (id === 'mutation_vat') { add('save',1); trait('Biological stabilization'); }
+  if (id === 'spirit_anchor_frame') { trait('Spirit residue containment'); }
+  if (id === 'dark_forge') { add('attack',1); add('armor',1); trait('High-capacity forge work'); }
+  if (id === 'staff_restoration') { trait('Ancient staff restoration'); }
+  if (id === 'whisper_charm') { trait('Spirit/death warning'); }
+  if (id === 'force_static_powder') { add('save',1); trait('Weak Force static'); }
+  if (id === 'ghost_lure') { trait('Attracts spirits or echoes'); }
+  if (id === 'echo_anchor') { trait('Binds weak echo/memory'); }
+  if (id === 'spirit_cage') { add('save',2); trait('Holds weak spirit/echo'); }
+  if (id === 'soul_anchor') { add('save',3); trait('Soul fragment anchor'); }
+  if (id === 'anti_force_relic') { add('save',2); trait('Focus-cracking anti-Force relic'); }
+  if (id === 'soul_furnace_core') { add('save',4); add('dr',1); trait('Spirit-powered core'); }
+  if (id === 'corpse_prep') { trait('Abomination body foundation'); }
+  if (id === 'crawling_hand') { trait('Minor utility servitor'); }
+  if (id === 'pain_brand') { trait('Staff-bound pain control'); }
+  if (id === 'bone_claw_graft') { add('attack',1); add('damageFlat',2); trait('Claws / extra limb graft'); }
+  if (id === 'lesser_flesh_horror') { add('attack',2); add('damageFlat',2); add('armor',1); trait('Lesser combat horror frame'); }
+  if (id === 'rage_heart') { add('damageFlat',2); trait('Rage engine when wounded'); }
+  if (id === 'hunger_core') { add('damageFlat',2); add('save',1); trait('Hunger-powered effect'); note('Starvation can cause instability.'); }
+  if (id === 'chimera_frame') { add('attack',2); add('damageFlat',3); add('armor',1); trait('Multi-species horror body'); }
+  if (id === 'soul_ready_vessel') { add('save',2); trait('Spirit-ready body'); }
+  if (id === 'true_abomination_frame') { add('attack',4); add('damageFlat',5); add('armor',3); add('dr',3); trait('True abomination war body'); }
+  if (id === 'ancient_warbody') { add('attack',4); add('damageFlat',4); add('armor',3); add('dr',2); trait('Restored ancient warbody'); }
+  return out;
+}
+function calculatedCraftStats(cfg, selected, char) {
+  const base = baseItemProfile(cfg);
+  const method = cfg.method || 'Forge from Scratch';
+  const capacity = Math.max(1, (base.capacity || 3) + methodCapacityModifier(method));
+  const slotsUsed = selected.reduce((n,c)=>n+componentSlotCost(c),0);
+  const overSlots = Math.max(0, slotsUsed - capacity);
+  const levelPart = Math.floor(Number(char.level || 6) / 2);
+  let attack = Number(base.attack || 0);
+  let armor = Number(base.defense || 0);
+  let dr = Number(base.dr || 0);
+  let damageFlat = base.damage?.flat || 0;
+  let saveMod = 0;
+  let charges = 0;
+  let bonusDice = [];
+  let ongoing = [];
+  let traits = [];
+  let notes = [];
+  let duration = '';
+  selected.forEach(comp => {
+    const ef = componentMechanicalEffect(comp, cfg);
+    attack += ef.attack || 0;
+    armor += ef.armor || 0;
+    dr += ef.dr || 0;
+    damageFlat += ef.damageFlat || 0;
+    saveMod += ef.save || 0;
+    charges += ef.charges || 0;
+    (ef.bonusDice || []).forEach(x=>addDice(bonusDice,x));
+    (ef.ongoing || []).forEach(x=>addDice(ongoing,x));
+    (ef.traits || []).forEach(x=>traits.push(x));
+    (ef.notes || []).forEach(x=>notes.push(x));
+    if (ef.duration) duration = ef.duration;
+  });
+  if (method === 'Forge from Scratch' && ['weapon','armor','relic'].includes(base.kind)) {
+    if (base.kind === 'weapon') attack += 1;
+    if (base.kind === 'armor') armor += 1;
+    traits.push('Integrated from scratch');
+  }
+  if (method === 'Imbue Existing Item') notes.push('Imbued item has reduced capacity and may use weaker versions of some components.');
+  if (overSlots > 0) notes.push(`Over capacity by ${overSlots} slot(s): GM approval required and backlash risk increases.`);
+  const saveDC = 10 + levelPart + Number(char.intMod || 0) + saveMod;
+  const baseDamage = base.damage && base.damage.count ? `${base.damage.count}d${base.damage.sides}${damageFlat ? (damageFlat>0?`+${damageFlat}`:damageFlat) : ''} ${base.damageType || ''}`.trim() : (damageFlat ? `+${damageFlat}` : '—');
+  return {
+    kind: base.kind,
+    baseName: base.name,
+    capacity,
+    slotsUsed,
+    overSlots,
+    attackMod: attack,
+    damage: baseDamage,
+    bonusDamage: bonusDice.join(', ') || '—',
+    ongoingDamage: ongoing.join(', ') || '—',
+    armorDefense: armor,
+    dr,
+    saveDC,
+    charges: charges || 0,
+    duration: duration || (base.kind === 'compound' || base.kind === 'mutagen' ? '1 scene or recipe-defined' : 'Permanent while maintained'),
+    traits: [...new Set(traits)],
+    notes
+  };
+}
+function renderAutoStats(stats) {
+  const line = (a,b,cls='') => `<div class="list-row one-line"><b>${a}</b><span class="${cls}">${safe(b)}</span></div>`;
+  return `<h4 class="red">Auto-Calculated Stats</h4><div class="auto-stat-grid">
+    ${line('Capacity', `${stats.slotsUsed} / ${stats.capacity} slots`, stats.overSlots ? 'bad' : 'green')}
+    ${stats.kind === 'weapon' || stats.kind === 'creature' ? line('Attack Modifier', `${stats.attackMod >= 0 ? '+' : ''}${stats.attackMod}`) : ''}
+    ${stats.kind === 'weapon' || stats.kind === 'creature' || stats.kind === 'compound' ? line('Damage', stats.damage) : ''}
+    ${stats.bonusDamage !== '—' ? line('Bonus Damage', stats.bonusDamage, 'gold') : ''}
+    ${stats.ongoingDamage !== '—' ? line('Ongoing / DOT', stats.ongoingDamage, 'gold') : ''}
+    ${stats.kind === 'armor' || stats.kind === 'creature' ? line('Defense Bonus', `+${stats.armorDefense}`) : ''}
+    ${stats.kind === 'armor' || stats.kind === 'creature' ? line('DR / Resistance', `${stats.dr}`) : ''}
+    ${line('Effect Save DC', stats.saveDC)}
+    ${stats.charges ? line('Charges', stats.charges) : ''}
+    ${line('Duration', stats.duration)}
+  </div>
+  <div class="component-pill-list stat-traits">${stats.traits.length ? stats.traits.map(t=>`<span class="component-pill">${safe(t)}</span>`).join('') : '<span class="subtle">No special traits selected yet.</span>'}</div>
+  ${stats.notes.length ? `<div class="panel warning-panel"><h3 class="panel-title">Auto Warnings</h3>${stats.notes.map(n=>`<p class="subtle">${safe(n)}</p>`).join('')}</div>` : ''}`;
+}
+
+function renderCrafting(char) {
+  const cfg = ensureCraftingConfig();
+  const knownRecipeList = knownRecipes(char);
+  const recipe = knownRecipeList.find(r => r.id === state.selectedRecipeId) || knownRecipeList[0] || null;
+  if (recipe && state.selectedRecipeId !== recipe.id) state.selectedRecipeId = recipe.id;
+  const categories = ['Melee Weapon','Thrown Weapon','Lightsaber Hilt','Armor','Mask / Helmet','Gauntlet / Bracer','Relic','Bomb','Mutagen','Creature','Ritual Tool','Abomination'];
+  const methods = ['Forge from Scratch','Imbue Existing Item','Upgrade Existing Creation','Create Consumable','Create Mutagen','Shape Creature','Build Ritual Tool','Build Abomination','Coat Weapon'];
+  const baseItems = craftingBaseItems(cfg.baseCategory);
+  if (!baseItems.includes(cfg.baseItem)) cfg.baseItem = baseItems[0];
+  const compatible = COMPONENTS.filter(comp => componentCompatible(comp, cfg));
+  const selected = COMPONENTS.filter(comp => cfg.selectedComponents.includes(comp.id));
+  const unlockedCompatible = compatible.filter(comp => componentUnlocked(comp, char));
+  const lockedCompatible = compatible.filter(comp => !componentUnlocked(comp, char));
+  const summary = customCraftSummary(cfg, selected, char);
+  const autoStats = calculatedCraftStats(cfg, selected, char);
+  return `<h1 class="page-title">Crafting Lab</h1>
+    <section class="craft-lab-v2">
+      <aside class="panel craft-builder">
+        <h3 class="panel-title">Project Builder</h3>
+        <label>Project Type<select class="input" data-craft-field="projectType">${['Craft New Item','Imbue Existing Item','Upgrade Existing Creation','Create Consumable','Create Mutagen','Shape Creature','Build Ritual Tool','Build Abomination'].map(x=>`<option ${cfg.projectType===x?'selected':''}>${x}</option>`).join('')}</select></label>
+        <label>Base Category<select class="input" data-craft-field="baseCategory">${categories.map(x=>`<option ${cfg.baseCategory===x?'selected':''}>${x}</option>`).join('')}</select></label>
+        <label>Base Item<select class="input" data-craft-field="baseItem">${baseItems.map(x=>`<option ${cfg.baseItem===x?'selected':''}>${x}</option>`).join('')}</select></label>
+        <label>Creation Method<select class="input" data-craft-field="method">${methods.map(x=>`<option ${cfg.method===x?'selected':''}>${x}</option>`).join('')}</select></label>
+        <div class="method-note"><b>Rule:</b> crafting from scratch is stronger and more flexible, imbuing is easier but has fewer options, and combining trees increases DC and risk.</div>
+        <h3 class="panel-title">Selected Components</h3>
+        <div class="selected-components">${selected.length ? selected.map(c=>`<div class="selected-chip"><span>${safe(c.name)}</span><button data-action="select-component" data-id="${c.id}">×</button></div>`).join('') : '<div class="subtle">No components selected yet.</div>'}</div>
+        <button class="ghost-btn" data-action="clear-components">Clear Components</button>
+      </aside>
+      <main class="panel component-browser">
+        <h3 class="panel-title">Compatible Unlocked Components</h3>
+        <div class="component-grid">${unlockedCompatible.map(comp=>renderComponentCard(comp, char, true)).join('') || '<div class="subtle">No unlocked compatible components yet. Unlock more tree nodes or change the base category.</div>'}</div>
+        <h3 class="panel-title muted-title">Locked But Compatible</h3>
+        <div class="component-grid locked-grid">${lockedCompatible.slice(0,12).map(comp=>renderComponentCard(comp, char, false)).join('') || '<div class="green">No locked compatible components for this setup.</div>'}</div>
+        <h3 class="panel-title">Known Recipe Cards</h3>
+        <div class="recipe-list horizontal-recipes">${knownRecipeList.map(r=>`<div class="recipe-card-mini ${recipe && r.id===recipe.id?'active':''}" data-recipe="${r.id}"><div class="thumb">${r.icon}</div><div><b>${safe(r.name)}</b><br><span class="subtle">${safe(r.tree)} · ${safe(r.tier)}</span></div><span class="red">DC ${r.dc}</span></div>`).join('') || '<div class="subtle">No recipe cards unlocked yet. Unlock tree nodes to reveal recipes.</div>'}</div>
+      </main>
+      <aside class="panel craft-summary-panel">
+        <h3 class="panel-title">Custom Project Summary</h3>
+        <div class="recipe-art" style="min-height:130px">${craftingIcon(cfg.baseCategory)}</div>
+        <div class="list">
+          <div class="list-row one-line"><b>Project</b><span>${safe(cfg.projectType)}</span></div>
+          <div class="list-row one-line"><b>Base</b><span>${safe(cfg.baseItem)}</span></div>
+          <div class="list-row one-line"><b>Method</b><span>${safe(cfg.method)}</span></div>
+          <div class="list-row one-line"><b>Estimated DC</b><span>${summary.dc}</span></div>
+          <div class="list-row one-line"><b>Risk</b><span class="gold">${safe(summary.risk)}</span></div>
+          <div class="list-row one-line"><b>Components</b><span>${selected.length}</span></div>
+        </div>
+        ${renderAutoStats(autoStats)}
+        <h4 class="red">Combined Ingredients</h4>
+        <div class="ingredient-needs compact">${summary.ingredients.length ? ingredientNeedRows(char, summary.ingredients) : '<div class="subtle">Select components to calculate requirements.</div>'}</div>
+        <div class="panel warning-panel"><h3 class="panel-title">Crafting Note</h3><p class="subtle">The app now treats tree nodes as component unlocks. The Crafting Lab filters what can be added to the selected item, creature, mutagen, or ritual tool.</p></div>
+        <button class="danger-btn" style="width:100%;font-size:18px" data-action="begin-custom-crafting">Start Custom Project</button>
+        <hr style="border-color:rgba(255,0,0,.16)">
+        <h3 class="panel-title">Selected Recipe Detail</h3>
+        ${recipe ? renderRecipeDetail(recipe, char) : '<div class="subtle">No known recipe selected. Unlock recipe nodes first.</div>'}
+      </aside>
+    </section>
+    ${renderActiveProjects(char)}`;
+}
+function renderComponentCard(comp, char, unlocked) {
+  const selected = ensureCraftingConfig().selectedComponents.includes(comp.id);
+  const missing = (comp.nodeIds||[]).filter(id=>!char.unlockedNodes.includes(id)).map(id=>nodeById(id)?.name || id);
+  return `<div class="component-card ${unlocked?'':'locked'} ${selected?'selected':''}">
+    <div class="component-card-head"><b>${safe(comp.name)}</b><span>${safe(comp.type)}</span></div>
+    <p>${safe(comp.effect)}</p>
+    <div class="tiny subtle"><b>Tree:</b> ${safe(comp.tree)}</div>
+    <div class="tiny subtle"><b>Risk:</b> ${safe(comp.risk)} · <b>DC Mod:</b> +${comp.dcMod || 0} · <b>Slots:</b> ${componentSlotCost(comp)}</div>
+    ${unlocked ? `<button class="${selected?'danger-btn':'red-btn'}" data-action="select-component" data-id="${comp.id}">${selected?'Remove':'Add Component'}</button>` : `<div class="bad tiny">Requires: ${missing.map(safe).join(', ')}</div>`}
+  </div>`;
+}
+function renderActiveProjects(char) {
+  const list = char.projects || [];
+  if (!list.length) return '';
+  return `<section class="panel active-projects"><h3 class="panel-title">Active Crafting Projects</h3><div class="table-wrap"><table><thead><tr><th>Project</th><th>Status</th><th>Started</th><th>Checks</th><th>Action</th></tr></thead><tbody>${list.map(p=>`<tr><td><b>${safe(p.name)}</b><br><span class="subtle">${safe(p.projectType || p.recipeId || 'Recipe')}</span></td><td>${safe(p.status)}</td><td>${safe(p.started)}</td><td>${(p.checks||[]).map(ch=>safe(ch.name)+' DC '+ch.dc).join(', ')}</td><td><button class="red-btn" data-action="${p.custom?'complete-custom-project':'complete-project'}" data-id="${p.id}" data-recipe="${p.recipeId||''}">Complete</button></td></tr>`).join('')}</tbody></table></div></section>`;
+}
+function renderRecipeDetail(r, char) {
+  if (!r) return '<div class="subtle">No known recipe selected.</div>';
+  return `<div class="mini-recipe-detail"><div class="hero-recipe"><div class="recipe-art small-art">${r.icon}</div><div><h2 class="page-title small-title">${safe(r.name)}</h2><div class="subtle">${safe(r.tree)}</div><p class="effect-text">${safe(r.effect)}</p><div class="stack"><span class="badge gold-badge">AP ${r.ap}</span><span class="badge ${hasIngredients(char,r)?'green-badge':'red-badge'}">${hasIngredients(char,r)?'Ready':'Missing Ingredients'}</span><span class="badge red-badge">${safe(r.tier)}</span></div></div></div>
+    <div class="detail-grid"><div><h3 class="panel-title">Prerequisites</h3><div class="checklist">${r.prerequisites.map(p=>`<div class="checkitem"><span class="green">✓</span><span>${safe(p)}</span></div>`).join('')}</div><h3 class="panel-title">Ingredients</h3><div class="checklist">${r.ingredients.map(i=>{const have = ingredientQty(char,i.name); return `<div class="checkitem"><span class="${have>=i.qty?'green':'bad'}">${have>=i.qty?'✓':'×'}</span><span>${safe(i.name)}</span><span>${have} / ${i.qty}</span></div>`}).join('')}</div></div>
+    <div><h3 class="panel-title">Crafting Checks</h3><div class="checklist">${r.checks.map(x=>`<div class="checkitem"><span class="red">✥</span><span>${safe(x)}</span><span>DC ${r.dc}</span></div>`).join('')}</div><h3 class="panel-title">Rules</h3><div class="list"><div class="list-row one-line"><b>Crafting DC</b><span>${r.dc}</span></div><div class="list-row one-line"><b>Time</b><span>${safe(r.time)}</span></div><div class="list-row one-line"><b>Risk</b><span class="gold">${safe(r.risk)}</span></div><div class="list-row one-line"><b>GM Secret</b><span>${safe(r.gmSecret)}</span></div></div></div></div></div>`;
+}
+function componentCompatible(comp, cfg) {
+  const cat = cfg.baseCategory;
+  const method = cfg.method;
+  const project = cfg.projectType;
+  const catMatch = (comp.category||[]).some(x => x === cat || x === project || (x === 'All Equipment' && ['Melee Weapon','Thrown Weapon','Lightsaber Hilt','Armor','Mask / Helmet','Gauntlet / Bracer','Relic'].includes(cat)) || (x === 'Weapon' && ['Melee Weapon','Thrown Weapon','Lightsaber Hilt'].includes(cat)));
+  const methodMatch = !comp.methods || comp.methods.includes(method) || comp.methods.includes(project) || (project === 'Create Consumable' && ['Create Consumable','Coat Weapon'].some(m=>comp.methods.includes(m)));
+  return catMatch && methodMatch;
+}
+function componentUnlocked(comp, char) { ensureAlchemyProgress(char); return (comp.nodeIds || []).every(id => char.unlockedNodes.includes(id) && isTreeUnlocked(treeKeyForNode(id), char)); }
+function customCraftSummary(cfg, selected, char) {
+  const baseDC = cfg.projectType.includes('Abomination') ? 35 : cfg.projectType.includes('Shape') ? 25 : cfg.projectType.includes('Mutagen') ? 25 : cfg.projectType.includes('Imbue') ? 20 : 16;
+  const methodMod = cfg.method === 'Imbue Existing Item' ? -2 : cfg.method === 'Forge from Scratch' ? 0 : cfg.method === 'Build Abomination' ? 8 : cfg.method === 'Upgrade Existing Creation' ? 3 : 0;
+  const stats = calculatedCraftStats(cfg, selected, char);
+  const overloadDC = stats.overSlots * 5;
+  const dc = Math.max(10, baseDC + methodMod + selected.reduce((s,c)=>s+(c.dcMod||0),0) + Math.max(0, selected.length-1)*2 + overloadDC);
+  const idx = Math.min(RISK_ORDER.length-1, selected.reduce((m,c)=>Math.max(m, riskIndex(c.risk)), 0) + Math.max(0, selected.length-2) + stats.overSlots);
+  const ingMap = new Map();
+  selected.forEach(c => (c.ingredients||[]).forEach(i => ingMap.set(i.name, (ingMap.get(i.name)||0)+i.qty)));
+  if (stats.overSlots > 0) ingMap.set('Extra Stabilizing Reagent', (ingMap.get('Extra Stabilizing Reagent') || 0) + stats.overSlots);
+  const ingredients = [...ingMap.entries()].map(([name,qty])=>({name,qty,rarity:'Component'}));
+  return { dc, risk: riskFromIndex(idx), ingredients, autoStats: stats };
+}
+function craftingIcon(category) { if (category.includes('Weapon')) return '🗡️'; if (category.includes('Armor')) return '🛡️'; if (category.includes('Mutagen')) return '🧬'; if (category.includes('Creature')) return '♞'; if (category.includes('Abomination')) return '☣'; if (category.includes('Bomb')) return '💣'; if (category.includes('Relic')) return '◉'; return '⚗'; }
+function ingredientQty(char, name) { const x = char.ingredients.find(i=>i.name.toLowerCase() === name.toLowerCase()); return x ? Number(x.qty) : 0; }
+function hasIngredients(char, recipe) { return recipe.ingredients.every(i => ingredientQty(char, i.name) >= i.qty); }
+function canonText(str) { return String(str || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+function nodeIdByName(name) { const target = canonText(name); return allNodes().find(n => canonText(n.name) === target)?.id || null; }
+function recipeRequiredNodeIds(recipe) {
+  const ids = new Set(recipe.nodeIds || []);
+  (recipe.prerequisites || []).forEach(p => {
+    if (/abomination staff/i.test(p)) return;
+    const id = nodeIdByName(p);
+    if (id) ids.add(id);
+  });
+  return [...ids];
+}
+function recipeUnlocked(recipe, char) {
+  ensureAlchemyProgress(char);
+  if ((recipe.prerequisites || []).some(p => /abomination staff/i.test(p)) && !char.specialUnlocks?.abominatorStaff) return false;
+  const reqIds = recipeRequiredNodeIds(recipe);
+  if (!reqIds.length) return false;
+  return reqIds.every(id => char.unlockedNodes.includes(id) && isTreeUnlocked(treeKeyForNode(id), char));
+}
+function knownRecipes(char) { return RECIPES.filter(r => recipeUnlocked(r, char)); }
+function selectedKnownRecipe(char) {
+  const list = knownRecipes(char);
+  return list.find(r => r.id === state.selectedRecipeId) || list[0] || null;
+}
+
+
+function renderCreationStatsBlock(cr) {
+  const st = cr.calculatedStats || null;
+  if (!st) return '<div class="subtle">No calculated crafting stats stored for this older/demo creation.</div>';
+  const row = (a,b)=>`<div class="list-row one-line"><b>${a}</b><span>${safe(b)}</span></div>`;
+  return `<h3 class="panel-title">Calculated Crafting Stats</h3><div class="list">
+    ${row('Capacity', `${st.slotsUsed} / ${st.capacity} slots`)}
+    ${st.attackMod !== undefined ? row('Attack Modifier', `${st.attackMod >= 0 ? '+' : ''}${st.attackMod}`) : ''}
+    ${st.damage ? row('Damage', st.damage) : ''}
+    ${st.bonusDamage && st.bonusDamage !== '—' ? row('Bonus Damage', st.bonusDamage) : ''}
+    ${st.ongoingDamage && st.ongoingDamage !== '—' ? row('Ongoing / DOT', st.ongoingDamage) : ''}
+    ${st.armorDefense !== undefined ? row('Defense Bonus', `+${st.armorDefense}`) : ''}
+    ${st.dr !== undefined ? row('DR / Resistance', st.dr) : ''}
+    ${st.saveDC !== undefined ? row('Effect Save DC', st.saveDC) : ''}
+    ${st.duration ? row('Duration', st.duration) : ''}
+  </div><div class="component-pill-list">${(st.traits || cr.traits || []).map(t=>`<span class="component-pill">${safe(t)}</span>`).join('') || '<span class="subtle">No traits listed.</span>'}</div>`;
+}
+
+function renderCreations(char) {
+  const filtered = state.creationFilter === 'All' ? char.creations : char.creations.filter(x => x.category === state.creationFilter);
+  return `<h1 class="page-title">Active Alchemical Creations</h1><section class="creations-layout"><div class="panel"><div class="filters">${['All','Weapon','Armor','Relic','Tool','Compound','Creature'].map(f=>`<button class="ghost-btn filter-btn ${state.creationFilter===f?'red':''}" data-filter="${f}">${f} Creations</button>`).join('')}<button class="ghost-btn filter-btn" data-action="sort-creations">Sort by Status</button></div><div class="table-wrap"><table><thead><tr><th>Name</th><th>Category</th><th>Type</th><th>Status</th><th>Maintenance</th><th>Major</th><th>Actions</th></tr></thead><tbody>${filtered.map(x=>`<tr><td><b>${safe(x.name)}</b><br><span class="subtle">${safe(x.subtitle)}</span></td><td>${safe(x.category)}</td><td>${safe(x.type)}</td><td>${statusPill(x.status)}</td><td class="${x.maintenance.includes('Due')||x.maintenance.includes('Repair')||x.status==='Hungry'?'warn':''}">${safe(x.maintenance)}</td><td>${x.major?'Yes':'No'}</td><td class="action-cell"><button class="ghost-btn" data-action="view-creation" data-id="${x.id}">View</button><button class="ghost-btn" data-action="maintain-creation" data-id="${x.id}">Maintain</button><button class="danger-btn" data-action="retire-creation" data-id="${x.id}">Retire</button></td></tr>`).join('')}</tbody></table></div><br><button class="red-btn" data-action="create-creation">+ Create New Creation</button></div>
+    <aside class="grid"><div class="panel"><h3 class="panel-title">Creation Overview</h3><div class="side-stat"><span class="hex-icon grayish">⬢</span><div><b>Major Creations</b><div>${majorUsed(char)} / ${majorLimit(char)}</div><div class="bar"><span style="width:${Math.min(100,majorUsed(char)/Math.max(1,majorLimit(char))*100)}%"></span></div></div></div><div class="side-stat"><span class="hex-icon grayish">♞</span><div><b>Controlled Creatures</b><div>${creatureUsed(char)} / ${creatureLimit(char)}</div><div class="bar goldbar"><span style="width:${Math.min(100,creatureUsed(char)/Math.max(1,creatureLimit(char))*100)}%"></span></div></div></div><div class="side-stat"><span class="hex-icon grayish">▣</span><div><b>Total Active Creations</b><div>${char.creations.length} / 25</div></div></div></div><div class="panel"><h3 class="panel-title">Active Warnings</h3><div class="list">${warnings(char).map(w=>`<div class="list-row"><span class="glyph warn">!</span><span><b class="warn">${safe(w.type)}</b><br><span class="subtle">${safe(w.text)}</span></span></div>`).join('') || '<div class="green">No active warnings.</div>'}</div></div></aside></section>`;
+}
+function statusPill(status) { const cls = ['Stable','Active','Optimal'].includes(status) ? 'good' : ['Hungry','Maintenance Due'].includes(status) ? 'warn' : ['Unstable','Damaged','Cursed','Hostile'].includes(status) ? 'bad' : 'subtle'; return `<span class="${cls}"><span class="status-dot"></span>${safe(status)}</span>`; }
+
+function renderBestiary(char) {
+  const beast = (char.creatures || [])[0];
+  if (!beast) return `<h1 class="page-title">Creature Management / Bestiary</h1><section class="panel empty-bestiary"><div class="setup-sigil">♞</div><h2>No Controlled Creature Yet</h2><p class="effect-text">This character has not created or bound any Sith beasts yet. Once Beast Shaping recipes are crafted, creatures will appear here with loyalty, hunger, maintenance, traits, and GM secret notes.</p><div class="quick-actions"><button class="red-btn big-action" data-tab="crafting"><span>⚗</span>Open Crafting Lab</button>${state.settings.gmMode ? '<button class="ghost-btn big-action" data-action="create-starter-creature"><span>♞</span>GM: Add Test Tuk’ata</button>' : ''}</div></section>`;
+  return `<h1 class="page-title">Creature Management / Bestiary</h1><section class="creature-layout"><aside class="grid"><div class="panel"><h3 class="page-title" style="font-size:26px">${safe(beast.name)}</h3><div class="red">${safe(beast.type)}</div><br><div class="creature-meta"><span>Status</span><span class="green">${safe(beast.status)}</span><span>Controlled By</span><span>${safe(char.className)}</span><span>Origin</span><span>Dromund Kaas Wilds</span><span>Level</span><span>${beast.level}</span></div></div><div class="panel"><h3 class="panel-title">Loyalty & Control</h3><div class="meter-disc"><div class="loyalty-ring">${beast.loyalty}%</div><div><b>Control Method</b><br><span>${safe(beast.controlMethod)}</span><br><br><button class="red-btn" data-action="adjust-control">Adjust Control</button></div></div><div class="subtle">Loyalty Rank: <span class="green">${safe(beast.loyaltyRank)}</span></div></div><div class="panel"><h3 class="panel-title">Hunger & Feeding</h3><div class="red">Hunger Level: ${beast.hunger > 65 ? 'Hungry' : 'Sated'}</div><div class="hunger-blocks">${Array.from({length:12}, (_,i)=>`<span class="${i < Math.round(beast.hunger/100*12) ? 'fill' : ''}"></span>`).join('')}</div><div class="stat-line"><span>Next Feeding</span><b>${safe(beast.nextFeed)}</b></div><div class="stat-line"><span>Diet</span><b>${safe(beast.diet)}</b></div><button class="danger-btn" style="width:100%" data-action="feed-creature" data-id="${beast.id}">Feed Creature</button></div></aside><main class="panel"><h2 class="page-title" style="text-align:center">${safe(beast.name)}</h2><div class="creature-hero"><div class="beast"><div class="beast-body"></div><div class="spike s1"></div><div class="spike s2"></div><div class="spike s3"></div><div class="spike s4"></div><div class="beast-head"></div><div class="beast-eye"></div><div class="beast-mouth"></div><div class="beast-leg l1"></div><div class="beast-leg l2"></div><div class="beast-leg l3"></div><div class="beast-leg l4"></div></div></div><br><div class="panel"><h3 class="panel-title flex-title">Maintenance <span class="red">24h</span></h3><div class="detail-grid"><div class="checkitem"><span class="green">✓</span><span>Raw Flesh</span><span>8 / 8</span></div><div class="checkitem"><span class="green">✓</span><span>Pain Essence</span><span>4 / 4</span></div><div class="checkitem"><span class="green">✓</span><span>Dark Side Attunement</span><span>100 / 100</span></div><div><b class="green">${safe(beast.maintenance)}</b><br><span class="subtle">All requirements met.</span></div></div><br><button class="red-btn" data-action="perform-ritual">Perform Ritual</button></div><div class="detail-grid"><div class="panel"><h3 class="panel-title">Keeper's Notes</h3><p>${safe(beast.notes)}</p></div><div class="panel"><h3 class="panel-title">GM Notes ${state.settings.gmMode ? '' : '(Hidden)'}</h3><p>${state.settings.gmMode ? safe(beast.gmNotes) : 'Access restricted. GM mode required.'}</p></div></div></main><aside class="grid"><div class="panel"><h3 class="panel-title">Statistics</h3>${['Strength 97','Endurance 112','Agility 68','Perception 54','Willpower 76','Presence 63','Ferocity 104','Resilience 98'].map(s=>`<div class="stat-line"><span>${s.split(' ')[0]}</span><b>${s.split(' ')[1]}</b></div>`).join('')}</div><div class="panel"><h3 class="panel-title">Traits</h3>${beast.traits.map(t=>`<div class="list-row"><span class="glyph">✥</span><span>${safe(t)}<br><span class="subtle">Active creature trait.</span></span></div>`).join('')}</div><div class="panel"><h3 class="panel-title">Abilities</h3>${beast.abilities.map(t=>`<div class="list-row"><span class="glyph red">☄</span><span>${safe(t)}<br><span class="subtle">Combat action.</span></span></div>`).join('')}<br><button class="danger-btn" data-action="dismiss-creature" data-id="${beast.id}">Dismiss Creature</button></div></aside></section>`;
+}
+
+function renderInventory(char) {
+  return `<h1 class="page-title">Ingredient Inventory</h1><section class="inventory-layout"><div class="panel"><div class="table-wrap"><table><thead><tr><th>Ingredient</th><th>Rarity</th><th>Type</th><th>Qty</th><th>Quality</th><th>Legality</th><th>Storage</th><th>Actions</th></tr></thead><tbody>${char.ingredients.map(i=>`<tr><td><b>${safe(i.name)}</b><br><span class="subtle">${safe(i.source)}</span></td><td>${safe(i.rarity)}</td><td>${safe(i.type)}</td><td>${i.qty}</td><td>${safe(i.quality)}</td><td>${safe(i.legality)}</td><td>${safe(i.storage)}</td><td class="action-cell"><button class="ghost-btn" data-action="change-ing" data-id="${i.id}" data-delta="1">+</button><button class="ghost-btn" data-action="change-ing" data-id="${i.id}" data-delta="-1">−</button><button class="danger-btn" data-action="remove-ing" data-id="${i.id}">Remove</button></td></tr>`).join('')}</tbody></table></div></div><aside class="panel"><h3 class="panel-title">Add Ingredient</h3><div class="form-grid"><label class="wide">Name<input class="input" id="new-ing-name" placeholder="Preserved Nerve Tissue"></label><label>Rarity<select id="new-ing-rarity"><option>Common</option><option>Uncommon</option><option>Rare</option><option>Forbidden</option><option>Unique</option><option>Unknown</option></select></label><label>Type<select id="new-ing-type"><option>Biological</option><option>Mineral/Crystal</option><option>Technological</option><option>Chemical</option><option>Ritual</option><option>Spirit/Force</option><option>Living Subject</option></select></label><label>Quantity<input class="input" id="new-ing-qty" type="number" value="1" min="1"></label><label>Quality<input class="input" id="new-ing-quality" value="Standard"></label><label class="wide">Storage<input class="input" id="new-ing-storage" value="Sealed container"></label></div><br><button class="red-btn" data-action="add-ing">Add Ingredient</button><hr style="border-color:rgba(255,0,0,.18)"><h3 class="panel-title">Missing for Selected Recipe</h3>${(selectedKnownRecipe(char)?.ingredients || []).filter(x=>ingredientQty(char,x.name)<x.qty).map(x=>`<div class="list-row one-line"><b class="bad">${safe(x.name)}</b><span>${ingredientQty(char,x.name)} / ${x.qty}</span></div>`).join('') || '<div class="green">No missing ingredients for known selected recipe.</div>'}</aside></section>`;
+}
+
+function renderCodex() {
+  const cards = [
+    ['Reviewed Tree Content', 'All six alchemy trees now use the approved design drafts: Artifice, Dark Compounds, Ritual Tools, Beast Shaping, Spirit & Force-Anomaly, and Sith Abomination.'],
+    ['Tree Nodes = Component Families', 'Nodes unlock groups of compatible components, formulas, tools, mutations, or crafting methods. The Crafting Lab turns those unlocks into actual creations.'],
+    ['Component Limits', 'Minor, standard, major, and forbidden components should be limited by item capacity, crafting method, rare ingredients, and GM approval.'],
+    ['Craft vs Imbue', 'Crafting from scratch is usually stronger and uses full capacity. Imbuing existing gear is easier but more limited unless the item is an ancient Sith relic.'],
+    ['Cross-Tree Hybrids', 'Dark Compounds + Beast Shaping creates Sith beast mutagens. Artifice + Spirit creates ghost-piercing gear. Abomination + Beast creates chimera horrors.'],
+    ['Sith Abomination Staff', 'The staff is a key, not an instant power spike. It unlocks Tier I first; higher tiers require restoration, AP, rare ingredients, story progress, and GM control.'],
+    ['GM Secrets', 'Spirit items, abominations, cursed enhancements, living armor, and high-risk mutagens should support hidden flaws, loyalty issues, and future consequences.']
+  ];
+  return `<h1 class="page-title">Codex / Reference</h1><section class="codex-grid">${cards.map(([title,body])=>`<div class="panel codex-card"><h3 class="panel-title">${title}</h3><p>${body}</p></div>`).join('')}</section><section class="panel" style="margin-top:16px"><h3 class="panel-title">Sith & Dark Creature Research Catalogue</h3><p class="effect-text">Powerful effects should use specific trophies from rare, alpha, elder, matron, corrupted, Force-touched, or unique variants. This keeps rare formulas tied to hunts, tombs, worlds, and boss creatures.</p><div class="list"><div class="list-row"><span class="glyph gold">♞</span><span><b>K’lor’slug Matron</b><br><span class="subtle"><b>Harvest:</b> Acid gland, bile sac, brood eggs<br><b>Uses:</b> Acid mutagens, corrosive bombs, abomination stomach engines</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Shyrack Broodcaller</b><br><span class="subtle"><b>Harvest:</b> Echo gland, wing cartilage, screech sac<br><b>Uses:</b> Echolocation draughts, fear screams, gliding/nightstalker traits</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Tuk’ata Alpha</b><br><span class="subtle"><b>Harvest:</b> Fang root, adrenal marrow, heart blood<br><b>Uses:</b> Predator serum, claws, pack conditioning, war-form mutations</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Hssiss Elder Shade</b><br><span class="subtle"><b>Harvest:</b> Shadow gland, scale marrow, phase membrane<br><b>Uses:</b> Shadow blood serum, invisibility, light-drinking skin, stealth beasts</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Terentatek Ritual Beast</b><br><span class="subtle"><b>Harvest:</b> Rage gland, Force-resistant hide, marrow<br><b>Uses:</b> Force-hunter instinct, rage mutagen, anti-Force armor, abomination cores</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Rakghoul Brood Horror</b><br><span class="subtle"><b>Harvest:</b> Plague blood, rot gland, corrupted marrow<br><b>Uses:</b> Disease cultures, plague bombs, rot mutagens, corpse-flesh experiments</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Rancor Matriarch</b><br><span class="subtle"><b>Harvest:</b> Heart, muscle fiber, adrenal gland, thick hide<br><b>Uses:</b> Strength mutagens, brute frames, living armor muscle, blood-might form</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Vornskr Pack Alpha</b><br><span class="subtle"><b>Harvest:</b> Force-scent organ, fang, tracking brain tissue<br><b>Uses:</b> Force-hunter templates, Jedi-hunter lures, anti-Force tracking</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Ysalamir Elder</b><br><span class="subtle"><b>Harvest:</b> Force-null tissue, field membrane, neural lattice<br><b>Uses:</b> Force dampening relics, spirit containment, anti-Force tools</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Orbalisk Queen Cluster</b><br><span class="subtle"><b>Harvest:</b> Shell plate, parasite nerve, dark feeding tissue<br><b>Uses:</b> Living armor, pain-shell serum, parasite armor, cursed plating</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Massassi War Beast</b><br><span class="subtle"><b>Harvest:</b> War-bone, rage blood, ritual scar tissue<br><b>Uses:</b> Sithspawn templates, rage engines, war frames, relic reinforcement</span></span></div><div class="list-row"><span class="glyph gold">♞</span><span><b>Krayt Dragon</b><br><span class="subtle"><b>Harvest:</b> Pearl, tooth, hide, stomach acid, heart<br><b>Uses:</b> Armor, crystal experiments, rage relics, dragon-blood mutagens</span></span></div></div></section>`;
+}
+function renderCharacter(char) {
+  const refundable = char.unlockedNodes.map(id=>nodeById(id)).filter(Boolean);
+  const lockedAttr = state.settings.gmMode ? '' : 'readonly';
+  const lockNote = state.settings.gmMode ? '<span class="green">GM Mode: level, Intelligence, Sith Inquisitor level, and bonus AP are editable.</span>' : '<span class="subtle">Level, Sith Inquisitor level, Intelligence modifier, and bonus AP are locked outside GM Mode so AP stays calculated and harder to tamper with.</span>';
+  return `<h1 class="page-title">Character Profile / Respec</h1><section class="character-layout"><aside class="panel"><h3 class="panel-title">Player Profile</h3><div class="profile-row active"><div class="avatar-small"></div><div><b>${safe(state.player.name)}</b><br><span class="subtle">${safe(char.path)}</span></div><span class="badge red-badge">${char.level}</span></div><br><h3 class="panel-title">Character List</h3><div class="profile-list">${state.characters.map(ch=>`<div class="profile-row ${ch.id===char.id?'active':''}" data-char="${ch.id}"><div class="avatar-small"></div><div><b>${safe(ch.name)}</b><br><span class="subtle">${safe(ch.className)} · Level ${ch.level}</span></div><span>${ch.path.includes('Alchemist')?'⚗':'✥'}</span></div>`).join('')}</div><br><button class="red-btn" data-action="new-char">+ Create New Character</button><button class="ghost-btn" data-action="duplicate-char">Duplicate Character</button><button class="danger-btn" data-action="delete-char">Delete Character</button></aside><main class="panel"><h2 class="page-title">${safe(char.name)}</h2><div class="red">${safe(char.className)}</div><div class="full-portrait"></div><br><div class="form-grid"><label>Name<input class="input" id="char-name" value="${safe(char.name)}"></label><label>Level<input class="input" id="char-level" type="number" min="6" value="${char.level}" ${lockedAttr}></label><label>Sith Inquisitor Level<input class="input" id="char-inq" type="number" min="1" max="5" value="${char.sithInqLevel}" ${lockedAttr}></label><label>Intelligence Modifier<input class="input" id="char-int" type="number" value="${char.intMod}" ${lockedAttr}></label>${state.settings.gmMode ? `<label>GM Bonus AP<input class="input" id="char-bonus-ap" type="number" value="${Number(char.bonusAP || 0)}"></label>` : `<label>GM Bonus AP<input class="input" readonly value="${Number(char.bonusAP || 0)}"></label>`}<label class="wide">Calculated AP<input class="input" readonly value="${apFormulaText(char)}"></label><label>Rank<input class="input" id="char-rank" value="${safe(char.rank)}"></label><div class="wide unlock-note">${lockNote}</div></div><br><button class="red-btn" data-action="save-char-edits">Save Profile</button><div class="detail-grid" style="margin-top:16px"><div class="panel"><h3 class="panel-title">Allocation Summary</h3><div class="stat-line"><span>Total AP Earned</span><b>${totalAPEarned(char)}</b></div><div class="stat-line"><span>Total AP Spent</span><b>${spentAP(char)}</b></div><div class="stat-line"><span>Available AP</span><b class="gold">${availableAP(char)}</b></div><div class="stat-line"><span>Refundable Nodes</span><b>${refundable.length}</b></div></div><div class="panel"><h3 class="panel-title">Quick Actions</h3><button class="red-btn" data-tab="trees">View Trees</button><button class="ghost-btn" data-action="export-build">Export Build</button><button class="ghost-btn" data-action="import-build">Import Build</button></div></div></main><aside class="grid"><div class="panel"><h3 class="panel-title">Point Reallocation</h3><div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)"><div class="kpi"><label>Available AP</label><div class="num" style="font-size:36px">${availableAP(char)}</div></div><div class="kpi"><label>Refundable Nodes</label><div class="num" style="font-size:36px">${refundable.length}</div></div><div class="kpi"><label>Refund Total</label><div class="num" style="font-size:36px">${refundable.reduce((s,n)=>s+nodeCost(n,getRank(char,n.id)),0)}</div></div></div><div class="respec-list">${refundable.map(n=>`<div class="refund-row"><span><b>${safe(n.name)}</b><br><span class="subtle">${safe(n.type)}</span></span><b>${nodeCost(n,getRank(char,n.id))} AP</b><button class="danger-btn" data-action="refund-node" data-id="${n.id}">Refund</button></div>`).join('')}</div><br><button class="danger-btn" style="width:100%" data-action="full-respec">Request / Perform Full Respec</button><button class="ghost-btn" style="width:100%" data-action="undo-last">Undo Last Purchase</button><button class="blue-btn" style="width:100%" data-action="toggle-test">${state.settings.testMode ? 'Exit Test Mode' : 'Enter Test Mode'}</button></div><div class="panel"><h3 class="panel-title flex-title">History Log <button class="ghost-btn" data-action="clear-history">Clear</button></h3><div class="history-log">${char.history.slice().reverse().map(h=>`<div class="history-item"><span>${h.when}</span><span>${safe(h.text)}</span><span class="${h.ap>0?'green':h.ap<0?'bad':'subtle'}">${h.ap>0?'+':''}${h.ap} AP</span></div>`).join('')}</div></div></aside></section>`;
+}
+
+function renderModal() {
+  const m = state.modal;
+  return `<div class="modal-backdrop"><div class="modal"><h2 class="page-title">${safe(m.title)}</h2><div>${m.body}</div><div class="modal-actions"><button class="ghost-btn" data-action="close-modal">Close</button>${m.confirm ? `<button class="danger-btn" data-action="modal-confirm">${safe(m.confirmText || 'Confirm')}</button>` : ''}</div></div></div>`;
+}
+
+function addHistory(char, text, ap=0) { char.history.push(hist(text, ap)); if (char.history.length > 100) char.history.shift(); }
+function rerenderSave(message) { saveState(); render(); if (message) toast(message); }
+
+function unlockNode(id, rankUp = false) {
+  const char = c(); const n = nodeById(id); if (!n) return;
+  if (!rankUp && char.unlockedNodes.includes(id)) return toast('Node already unlocked.');
+  if (!prereqsMet(n, char)) return toast('Prerequisites missing.');
+  if (n.gate && !state.settings.gmMode) return toast('This node requires GM approval or story unlock.');
+  if (availableAP(char) < n.cost) return toast('Not enough AP.');
+  if (!char.nodeRanks) char.nodeRanks = {};
+  const curRank = getRank(char, id);
+  if (curRank >= (n.rankMax || 1)) return toast('Node is already at max rank.');
+  if (!char.unlockedNodes.includes(id)) char.unlockedNodes.push(id);
+  char.nodeRanks[id] = curRank + 1;
+  addHistory(char, `${rankUp ? 'Ranked' : 'Unlocked'}: ${n.name}`, -n.cost);
+  rerenderSave(`${n.name} unlocked.`);
+}
+function refundNode(id) {
+  const char = c(); const n = nodeById(id); if (!n || !char.unlockedNodes.includes(id)) return;
+  const dependents = allNodes().filter(x => (x.prereq || []).includes(id) && char.unlockedNodes.includes(x.id));
+  if (dependents.length) return toast(`Cannot refund. Required by ${dependents[0].name}.`);
+  const rank = getRank(char, id);
+  const refund = n.cost;
+  char.nodeRanks[id] = Math.max(0, rank - 1);
+  if (char.nodeRanks[id] <= 0) {
+    char.unlockedNodes = char.unlockedNodes.filter(x => x !== id);
+    delete char.nodeRanks[id];
+  }
+  addHistory(char, `Refunded: ${n.name}`, refund);
+  char.creations.forEach(cr => { if ((cr.tree || '').includes(n.name)) cr.status = 'Recipe Knowledge Missing'; });
+  rerenderSave(`${n.name} refunded.`);
+}
+
+function beginCrafting(id) {
+  const char = c(); const r = recipeById(id);
+  if (!r) return toast('No recipe selected. Unlock a recipe first.');
+  if (!recipeUnlocked(r, char) && !state.settings.gmMode) return toast('Recipe is locked. Unlock the required tree node first.');
+  if (!hasIngredients(char, r) && !confirm('Ingredients are missing. Start unsafe project anyway?')) return;
+  const project = { id: uid(), recipeId: r.id, name: r.name, status: 'In Progress', checks: r.checks.map(ch => ({ name: ch, dc: r.dc, result: '' })), started: today() };
+  char.projects.push(project);
+  addHistory(char, `Started crafting: ${r.name}`, 0);
+  state.modal = { title: 'Crafting Project Started', body: `<p>${safe(r.name)} has been added as an active crafting project.</p><p class="subtle">Prototype note: use Complete Project to instantly create the tracked item after entering rolls later.</p>` };
+  rerenderSave('Crafting project started.');
+}
+function completeProject(recipeId) {
+  const char = c(); const r = recipeById(recipeId);
+  if (!r) return toast('No recipe selected. Unlock a recipe first.');
+  if (!recipeUnlocked(r, char) && !state.settings.gmMode) return toast('Recipe is locked. Unlock the required tree node first.');
+  if (hasIngredients(char, r)) {
+    r.ingredients.forEach(req => { const item = char.ingredients.find(i => i.name.toLowerCase() === req.name.toLowerCase()); if (item) item.qty = Math.max(0, item.qty - req.qty); });
+  }
+  const cat = r.type.includes('Creature') ? 'Creature' : r.type.includes('Armor') ? 'Armor' : r.type.includes('Poison') || r.type.includes('Elixir') ? 'Compound' : 'Weapon';
+  char.creations.push(creation(r.name, cat, r.type, r.risk === 'High' ? 'Unstable' : 'Stable', 'Maintenance: 2d', cat !== 'Compound', cat === 'Creature', r.effect, r.tree));
+  if (cat === 'Creature') char.creatures.push({ id: uid(), name: r.name, type: 'Sith-bound Creature', status: 'Active', base: 'Tuk’ata', level: 3, loyalty: 62, loyaltyRank: 'Obedient', controlMethod: 'Pain Anchor', hunger: 50, nextFeed: '1d 4h', diet: 'Raw meat', maintenance: 'Stable', traits: ['Dark Conditioning'], abilities: ['Bite'], notes: 'Newly bound creature.', gmNotes: 'Hidden loyalty not yet tested.' });
+  char.projects = char.projects.filter(p => p.recipeId !== recipeId);
+  addHistory(char, `Created: ${r.name}`, 0);
+  rerenderSave(`${r.name} added to active creations.`);
+}
+
+function toggleComponent(id) {
+  const char = c();
+  const cfg = ensureCraftingConfig();
+  const comp = COMPONENTS.find(x=>x.id===id);
+  const removing = cfg.selectedComponents.includes(id);
+  if (removing) {
+    cfg.selectedComponents = cfg.selectedComponents.filter(x=>x!==id);
+    return rerenderSave('Component removed.');
+  }
+  if (comp && !componentUnlocked(comp, char) && !state.settings.gmMode) return toast('Component is locked. Unlock the required tree node first.');
+  const proposed = COMPONENTS.filter(x => [...cfg.selectedComponents, id].includes(x.id));
+  const stats = calculatedCraftStats(cfg, proposed, char);
+  if (stats.overSlots > 0 && !state.settings.gmMode) return toast(`Capacity exceeded: ${stats.slotsUsed}/${stats.capacity} slots. Remove a component or use GM mode for overloaded crafting.`);
+  cfg.selectedComponents.push(id);
+  rerenderSave('Component added.');
+}
+function beginCustomCrafting() {
+  const char = c(); const cfg = ensureCraftingConfig();
+  const selected = COMPONENTS.filter(comp => cfg.selectedComponents.includes(comp.id));
+  if (!selected.length) return toast('Select at least one component first.');
+  if (selected.some(comp => !componentUnlocked(comp, char)) && !state.settings.gmMode) return toast('One or more selected components are locked. Remove locked components first.');
+  const summary = customCraftSummary(cfg, selected, char);
+  const autoStats = calculatedCraftStats(cfg, selected, char);
+  const project = { id: uid(), custom:true, name:`${cfg.baseItem}: ${selected.map(c=>c.name).join(' + ')}`, projectType:cfg.projectType, baseCategory:cfg.baseCategory, baseItem:cfg.baseItem, method:cfg.method, components:selected.map(c=>c.id), status:'In Progress', checks:['Knowledge: Sith Lore','Mechanics','Use the Force'].map(ch=>({name:ch,dc:summary.dc,result:''})), started:today(), summary };
+  char.projects = char.projects || []; char.projects.push(project);
+  addHistory(char, `Started custom craft: ${project.name}`, 0);
+  rerenderSave('Custom crafting project started.');
+}
+function completeCustomProject(projectId) {
+  const char = c(); const p = (char.projects||[]).find(x=>x.id===projectId);
+  if (!p) return toast('Project not found.');
+  const selected = COMPONENTS.filter(comp => (p.components||[]).includes(comp.id));
+  const category = p.baseCategory.includes('Armor') ? 'Armor' : p.baseCategory.includes('Creature') || p.baseCategory.includes('Abomination') ? 'Creature' : p.baseCategory.includes('Bomb') || p.baseCategory.includes('Mutagen') ? 'Compound' : p.baseCategory.includes('Relic') ? 'Relic' : p.baseCategory.includes('Ritual') ? 'Tool' : 'Weapon';
+  char.creations = char.creations || [];
+  const newCreation = creation(p.name, category, p.baseCategory, (p.summary?.risk === 'Severe' || p.summary?.risk === 'Extreme') ? 'Unstable' : 'Stable', 'Maintenance: 2d', !['Compound'].includes(category), category === 'Creature', selected.map(c=>c.effect).join(' | '), selected.map(c=>c.tree).join(' / '));
+  newCreation.traits = (p.summary?.autoStats?.traits || selected.map(c=>c.name));
+  newCreation.calculatedStats = p.summary?.autoStats || calculatedCraftStats({baseCategory:p.baseCategory, baseItem:p.baseItem, method:p.method, projectType:p.projectType}, selected, char);
+  newCreation.attackMod = newCreation.calculatedStats.attackMod;
+  newCreation.damage = newCreation.calculatedStats.damage;
+  newCreation.saveDC = newCreation.calculatedStats.saveDC;
+  newCreation.capacity = `${newCreation.calculatedStats.slotsUsed}/${newCreation.calculatedStats.capacity}`;
+  char.creations.push(newCreation);
+  if (category === 'Creature') char.creatures = char.creatures || [];
+  if (category === 'Creature') char.creatures.push({ id: uid(), name:p.name, type:'Alchemical Creature / Abomination', status:'Active', base:p.baseItem, level:Math.max(3, Number(char.level||6)-3), loyalty:55, loyaltyRank:'Unstable', controlMethod:'Pain Anchor', hunger:70, nextFeed:'1d', diet:'Raw Flesh / Pain Essence', maintenance:'Unstable', traits:selected.map(c=>c.name), abilities:['Bite','Claw','Alchemical Surge'], notes:'Custom creature created from selected components.', gmNotes:'GM should assign hidden instability based on risk.' });
+  char.projects = char.projects.filter(x=>x.id!==projectId);
+  addHistory(char, `Completed custom craft: ${p.name}`, 0);
+  rerenderSave('Custom creation added to Active Creations.');
+}
+
+
+function handleClick(e) {
+  const tabBtn = e.target.closest('[data-tab]');
+  if (tabBtn) { state.activeTab = tabBtn.dataset.tab; rerenderSave(); return; }
+  const nodeBtn = e.target.closest('[data-node]');
+  if (nodeBtn) { const key = treeKeyForNode(nodeBtn.dataset.node); state.activeTree = key; state.selectedNodeId = nodeBtn.dataset.node; rerenderSave(); return; }
+  const treeBtn = e.target.closest('[data-tree]');
+  if (treeBtn) { state.activeTree = treeBtn.dataset.tree; state.selectedNodeId = TREE_DATA[state.activeTree].nodes[0].id; rerenderSave(); return; }
+  const recipeBtn = e.target.closest('[data-recipe]');
+  if (recipeBtn) { state.selectedRecipeId = recipeBtn.dataset.recipe; rerenderSave(); return; }
+  const filterBtn = e.target.closest('[data-filter]');
+  if (filterBtn) { state.creationFilter = filterBtn.dataset.filter; rerenderSave(); return; }
+  const charBtn = e.target.closest('[data-char]');
+  if (charBtn) { state.activeCharacterId = charBtn.dataset.char; rerenderSave(); return; }
+  const action = e.target.closest('[data-action]');
+  if (!action) return;
+  performAction(action.dataset.action, action.dataset);
+}
+
+function handleChange(e) {
+  const field = e.target?.dataset?.craftField;
+  if (!field) return;
+  const cfg = ensureCraftingConfig();
+  cfg[field] = e.target.value;
+  if (field === 'baseCategory') cfg.baseItem = craftingBaseItems(cfg.baseCategory)[0];
+  cfg.selectedComponents = cfg.selectedComponents.filter(id => {
+    const comp = COMPONENTS.find(c=>c.id===id);
+    return comp && componentCompatible(comp, cfg);
+  });
+  rerenderSave();
+}
+
+function performAction(action, data) {
+  const char = c();
+  switch(action) {
+    case 'save': return rerenderSave('Saved.');
+    case 'help': state.modal = { title: 'Force Alchemy Interface', body: '<p>This prototype now starts with profile and character setup, then saves to this browser using localStorage. Use Character export to back up builds before clearing browser data.</p>' }; return render();
+    case 'complete-onboarding': return completeOnboarding(false);
+    case 'load-demo-onboarding': return completeOnboarding(true);
+    case 'create-starter-creature': { if (!state.settings.gmMode) return toast('GM mode required.'); const demoBeast = { id: uid(), name: 'Bound Tuk’ata', type: 'Sith-bound War Beast', status: 'Active', base: 'Tuk’ata', level: 5, loyalty: 84, loyaltyRank: 'Loyal', controlMethod: 'Pain Anchor', hunger: 72, nextFeed: '5h 42m', diet: 'Raw Flesh / Pain Essence', maintenance: 'Optimal', traits: ['Pain Tolerance', 'Dark Conditioning', 'Ferocious Instincts', 'Territorial'], abilities: ['Savage Maul', 'Rending Bite', 'Terrifying Roar', 'Leaping Assault'], notes: 'GM test creature.', gmNotes: 'Demo-only creature.' }; char.creatures = char.creatures || []; char.creatures.push(demoBeast); char.creations = char.creations || []; char.creations.push(creation(demoBeast.name, 'Creature', 'Beast', 'Hungry', 'Feeding: 5h 42m', true, true, 'Sithspawn Creature', 'Beast Shaping')); addHistory(char, `Created test creature: ${demoBeast.name}`, 0); return rerenderSave('Test creature added.'); }
+    case 'toggle-gm': state.settings.gmMode = !state.settings.gmMode; return rerenderSave(state.settings.gmMode ? 'GM mode enabled.' : 'GM mode disabled.');
+    case 'grant-ap': { if (!state.settings.gmMode) return toast('GM mode required to grant bonus AP.'); const val = Number(prompt('Grant how many bonus AP?', '1') || 0); if (val) { char.bonusAP = Number(char.bonusAP || 0) + val; char.totalAP = totalAPEarned(char); addHistory(char, `GM granted ${val} bonus Alchemy Points`, val); } return rerenderSave('AP updated.'); }
+    case 'grant-rip': { const val = Number(prompt('Grant Beast Shaping Ritual Insight Points?', '1') || 0); if (val) { char.ritualInsight = char.ritualInsight || []; if (!char.ritualInsight[0]) char.ritualInsight[0] = {tree:'Beast Shaping', amount:0}; char.ritualInsight[0].amount += val; } return rerenderSave('Ritual Insight updated.'); }
+    case 'unlock-node': return unlockNode(data.id, false);
+    case 'rank-node': return unlockNode(data.id, true);
+    case 'refund-node': return refundNode(data.id);
+    case 'request-approval': addHistory(char, `Requested approval: ${nodeById(data.id)?.name || data.id}`, 0); return rerenderSave('GM approval request logged. Enable GM mode to unlock in prototype.');
+    case 'wishlist-node': return toast('Wishlist placeholder added.');
+    case 'begin-crafting': return beginCrafting(data.id);
+    case 'select-component': return toggleComponent(data.id);
+    case 'clear-components': ensureCraftingConfig().selectedComponents = []; return rerenderSave('Components cleared.');
+    case 'begin-custom-crafting': return beginCustomCrafting();
+    case 'complete-project': return completeProject(data.recipe);
+    case 'complete-custom-project': return completeCustomProject(data.id);
+    case 'view-creation': { const cr = char.creations.find(x=>x.id===data.id); state.modal = { title: cr.name, body: `<div class="list"><div class="list-row one-line"><b>Category</b><span>${safe(cr.category)}</span></div><div class="list-row one-line"><b>Status</b><span>${safe(cr.status)}</span></div><div class="list-row one-line"><b>Maintenance</b><span>${safe(cr.maintenance)}</span></div><div class="list-row one-line"><b>Tree</b><span>${safe(cr.tree)}</span></div></div>${renderCreationStatsBlock(cr)}`}; return render(); }
+    case 'maintain-creation': { const cr = char.creations.find(x=>x.id===data.id); if (cr) { cr.status='Stable'; cr.maintenance='Maintenance: 2d 0h'; addHistory(char, `Maintained: ${cr.name}`, 0); } return rerenderSave('Creation maintained.'); }
+    case 'retire-creation': { const cr = char.creations.find(x=>x.id===data.id); if (cr && confirm(`Retire ${cr.name}?`)) { cr.status='Retired'; cr.major=false; addHistory(char, `Retired: ${cr.name}`, 0); } return rerenderSave('Creation retired.'); }
+    case 'create-creation': { const name = prompt('Creation name?', 'New Sith Relic'); if (!name) return; char.creations.push(creation(name, 'Relic', 'Custom', 'Stable', 'Maintenance: 3d', true, false, 'Custom alchemical creation', 'Custom')); addHistory(char, `Created: ${name}`, 0); return rerenderSave('Creation added.'); }
+    case 'feed-creature': { const b = char.creatures.find(x=>x.id===data.id) || char.creatures[0]; b.hunger = Math.max(0, b.hunger-35); b.nextFeed='1d 12h'; b.loyalty = Math.min(100, b.loyalty+3); addHistory(char, `Fed creature: ${b.name}`, 0); return rerenderSave('Creature fed.'); }
+    case 'adjust-control': { const b = (char.creatures || [])[0]; if (!b) return toast('No creature to control yet.'); b.loyalty = Math.min(100, b.loyalty+5); addHistory(char, `Adjusted control: ${b.name}`, 0); return rerenderSave('Control reinforced.'); }
+    case 'perform-ritual': { const b = (char.creatures || [])[0]; if (!b) return toast('No creature ritual target yet.'); b.maintenance='Optimal'; b.loyalty=Math.min(100,b.loyalty+4); addHistory(char, `Performed ritual for ${b.name}`, 0); return rerenderSave('Ritual performed.'); }
+    case 'dismiss-creature': { const b = char.creatures.find(x=>x.id===data.id); if (b && confirm(`Dismiss ${b.name}?`)) b.status='Dismissed'; return rerenderSave('Creature dismissed.'); }
+    case 'change-ing': { const item = char.ingredients.find(i=>i.id===data.id); if (item) item.qty = Math.max(0, Number(item.qty) + Number(data.delta)); return rerenderSave('Ingredient updated.'); }
+    case 'remove-ing': char.ingredients = char.ingredients.filter(i=>i.id!==data.id); return rerenderSave('Ingredient removed.');
+    case 'add-ing': return addIngredientFromForm();
+    case 'save-char-edits': return saveCharEdits();
+    case 'new-char': return newChar();
+    case 'duplicate-char': return duplicateChar();
+    case 'delete-char': return deleteChar();
+    case 'full-respec': if (confirm('Full respec will refund all AP nodes but keep history, creations, and ingredients. Continue?')) { char.unlockedNodes=[]; char.nodeRanks={}; addHistory(char,'Full Respec Performed', totalAPEarned(char)); } return rerenderSave('Full respec complete.');
+    case 'undo-last': return undoLastPurchase();
+    case 'toggle-test': state.settings.testMode = !state.settings.testMode; return rerenderSave(state.settings.testMode?'Test Mode enabled.':'Test Mode disabled.');
+    case 'export-build': return exportBuild();
+    case 'import-build': return importBuild();
+    case 'clear-history': if (confirm('Clear history log?')) char.history=[]; return rerenderSave('History cleared.');
+    case 'close-modal': state.modal=null; return render();
+    case 'modal-confirm': if (state.modal?.onConfirm) state.modal.onConfirm(); state.modal=null; return rerenderSave();
+    case 'sort-creations': char.creations.sort((a,b)=>a.status.localeCompare(b.status)); return rerenderSave('Sorted.');
+    case 'unlock-tree': return unlockTree(data.tree);
+    case 'track-staff-recipe': return trackAbominatorStaffRecipe();
+    case 'track-basic-tree-ritual': return trackBasicTreeRitual(data.tree);
+    case 'record-beast-dissection': return recordBeastDissection();
+    case 'record-spirit-holocron': return recordSpiritHolocron();
+    case 'bind-sith-ghost': return bindSithGhost();
+    case 'craft-abominator-staff': return craftAbominatorStaff();
+    case 'acquire-abominator-staff': return acquireAbominatorStaff();
+    default: return toast('Action placeholder.');
+  }
+}
+
+function completeOnboarding(useDemo) {
+  const base = useDemo ? demoCharacter() : makeFreshCharacter();
+  const playerName = document.getElementById('setup-player')?.value.trim() || 'Player';
+  const campaignName = document.getElementById('setup-campaign')?.value.trim() || 'Old Republic Dark Side Campaign';
+  base.name = document.getElementById('setup-char-name')?.value.trim() || base.name || 'New Sith Alchemist';
+  base.rank = document.getElementById('setup-rank')?.value.trim() || base.rank || 'Sith Initiate';
+  base.className = document.getElementById('setup-class')?.value || base.className;
+  base.path = document.getElementById('setup-path')?.value || base.path;
+  base.level = Number(document.getElementById('setup-level')?.value || base.level || 6);
+  base.sithInqLevel = Number(document.getElementById('setup-inq')?.value || base.sithInqLevel || 1);
+  base.intMod = Number(document.getElementById('setup-int')?.value || base.intMod || 0);
+  base.bonusAP = Number(base.bonusAP || 0); base.totalAP = totalAPEarned(base);
+  const mode = document.getElementById('setup-mode')?.value || 'fresh';
+  const focus = document.querySelector('input[name="setup-focus"]:checked')?.value || 'sith_artifice';
+  base.startingFocus = focus;
+  if (!useDemo && mode === 'starter') {
+    const first = TREE_DATA[focus]?.nodes?.[0];
+    if (first) { base.unlockedNodes = [first.id]; base.nodeRanks = {}; base.history = [hist(`Unlocked: ${first.name}`, -first.cost)]; }
+  }
+  if (!useDemo && mode === 'demo') {
+    const demo = demoCharacter();
+    Object.assign(base, { ingredients: demo.ingredients, creations: demo.creations, creatures: demo.creatures, projects: demo.projects, unlockedNodes: demo.unlockedNodes, nodeRanks: demo.nodeRanks, history: demo.history, bonusAP: base.bonusAP, totalAP: totalAPEarned(base) });
+  }
+  state.player = { name: playerName };
+  state.campaign = { name: campaignName };
+  state.characters = [base];
+  state.activeCharacterId = base.id;
+  state.activeTab = 'dashboard';
+  state.activeTree = focus;
+  state.selectedNodeId = TREE_DATA[focus]?.nodes?.[0]?.id || 'art_foundry';
+  state.onboardingComplete = true;
+  saveState();
+  render();
+  toast('Profile created. Autosave enabled.');
+}
+function makeFreshCharacter() {
+  const ch = {
+    id: uid(),
+    name: 'New Sith Alchemist',
+    className: 'Sith Inquisitor',
+    path: 'Sith Alchemist',
+    rank: 'Sith Initiate',
+    faction: 'Sith Empire',
+    alignment: 'Dark Side',
+    level: 6,
+    xp: 0,
+    xpNext: 1000,
+    sithInqLevel: 1,
+    intMod: 0,
+    bonusAP: 0,
+    totalAP: 0,
+    startingFocus: 'sith_artifice',
+    unlockedTrees: ['sith_artifice'],
+    treeUnlockProgress: { basicRitualTracked: {}, beastDissections: 0, spiritHolocrons: 0, boundSithGhost: false },
+    specialUnlocks: { abominatorStaff: false },
+    ritualInsight: [],
+    unlockedNodes: [],
+    nodeRanks: {},
+    ingredients: [],
+    creations: [],
+    creatures: [],
+    projects: [],
+    notes: 'Fresh Sith Alchemist profile.',
+    history: [hist('Character profile created', 0)]
+  };
+  ch.totalAP = totalAPEarned(ch);
+  return ch;
+}
+
+function addIngredientFromForm() {
+  const char = c();
+  const name = document.getElementById('new-ing-name').value.trim();
+  if (!name) return toast('Ingredient needs a name.');
+  char.ingredients.push(ing(name, document.getElementById('new-ing-rarity').value, document.getElementById('new-ing-type').value, Number(document.getElementById('new-ing-qty').value || 1), document.getElementById('new-ing-quality').value, 'Restricted', document.getElementById('new-ing-storage').value));
+  addHistory(char, `Acquired ingredient: ${name}`, 0);
+  rerenderSave('Ingredient added.');
+}
+function saveCharEdits() {
+  const char = c();
+  char.name = document.getElementById('char-name').value.trim() || char.name;
+  if (state.settings.gmMode) {
+    char.level = Math.max(6, Number(document.getElementById('char-level').value || char.level));
+    char.sithInqLevel = Math.min(5, Math.max(1, Number(document.getElementById('char-inq').value || char.sithInqLevel)));
+    char.intMod = Number(document.getElementById('char-int').value || char.intMod);
+    char.bonusAP = Number(document.getElementById('char-bonus-ap')?.value || char.bonusAP || 0);
+  }
+  char.totalAP = totalAPEarned(char);
+  char.rank = document.getElementById('char-rank').value.trim() || char.rank;
+  addHistory(char, 'Saved character profile', 0);
+  rerenderSave(state.settings.gmMode ? 'Character saved.' : 'Character saved. AP-affecting fields require GM Mode.');
+}
+function newChar() {
+  const base = makeFreshCharacter();
+  base.name = prompt('New character name?', 'New Sith Alchemist') || 'New Sith Alchemist';
+  base.unlockedTrees = [base.startingFocus || 'sith_artifice']; base.bonusAP = Number(base.bonusAP || 0); base.totalAP = totalAPEarned(base);
+  state.characters.push(base); state.activeCharacterId = base.id; addHistory(base, 'Character created', 0); rerenderSave('Character created.');
+}
+function duplicateChar() {
+  const copy = JSON.parse(JSON.stringify(c())); copy.id = uid(); copy.name = copy.name + ' - Test Build'; state.characters.push(copy); state.activeCharacterId = copy.id; rerenderSave('Character duplicated.');
+}
+function deleteChar() {
+  if (state.characters.length <= 1) return toast('Cannot delete the last character.');
+  const char = c(); if (!confirm(`Delete ${char.name}?`)) return; state.characters = state.characters.filter(x=>x.id!==char.id); state.activeCharacterId = state.characters[0].id; rerenderSave('Character deleted.');
+}
+function undoLastPurchase() {
+  const char = c();
+  const last = [...char.history].reverse().find(h => h.text.startsWith('Unlocked:') || h.text.startsWith('Ranked:'));
+  if (!last) return toast('No purchase to undo.');
+  const name = last.text.replace('Unlocked: ','').replace('Ranked: ','');
+  const n = allNodes().find(x => x.name === name);
+  if (!n) return toast('Could not identify last purchase.');
+  refundNode(n.id);
+}
+function exportBuild() {
+  const data = JSON.stringify(c(), null, 2);
+  state.modal = { title: 'Export Build', body: `<textarea class="input" style="width:100%;min-height:340px">${safe(data)}</textarea><p class="subtle">Copy this JSON and save it anywhere. Import it later from this same screen.</p>` };
+  render();
+}
+function importBuild() {
+  const raw = prompt('Paste exported character JSON here:');
+  if (!raw) return;
+  try { const ch = JSON.parse(raw); ch.id = uid(); state.characters.push(ch); state.activeCharacterId = ch.id; if (!state.onboardingComplete) state.onboardingComplete = true; rerenderSave('Imported character.'); } catch (err) { toast('Import failed. JSON was invalid.'); }
+}
+
+function initKeyboard() {
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.modal) { state.modal = null; render(); }});
+}
+
+
+
+/* v0.1.3 — side-by-side Old Republic tree interface and tree access progression. */
+const STARTING_TREE_IDS = ['sith_artifice', 'dark_compounds', 'ritual_tools'];
+const ADVANCED_TREE_IDS = ['beast_shaping', 'spirit_anomaly', 'sith_abomination'];
+
+Object.assign(TREE_DATA.sith_artifice, { family: 'starting', accessLabel: 'Starting Tree', colorClass: 'redish', accent: '#f05a4f', order: 1 });
+Object.assign(TREE_DATA.dark_compounds, { family: 'starting', accessLabel: 'Starting Tree', colorClass: 'greenish', accent: '#6edc8f', order: 2 });
+Object.assign(TREE_DATA.ritual_tools, { family: 'starting', accessLabel: 'Starting Tree', colorClass: 'blueish', accent: '#65c8ff', order: 3 });
+Object.assign(TREE_DATA.beast_shaping, { family: 'advanced', accessLabel: 'Advanced Unlock', colorClass: 'goldish', accent: '#d9ae42', order: 4, unlockSummary: 'Dissect three rare Sith-type apex specimens.' });
+Object.assign(TREE_DATA.spirit_anomaly, { family: 'advanced', accessLabel: 'Advanced Unlock', colorClass: 'purpleish', accent: '#b47cff', order: 5, unlockSummary: 'Study three ancient Sith alchemist holocrons or bind a Sith Force ghost.' });
+Object.assign(TREE_DATA.sith_abomination, { family: 'forbidden', accessLabel: 'Staff-Locked', colorClass: 'grayish', accent: '#9cabb4', order: 6, unlockSummary: 'Requires the Abominator’s Staff.' });
+
+const BASIC_TREE_RITUAL_INGREDIENTS = [
+  { name: 'Alchemical Salts', qty: 2, rarity: 'Common' },
+  { name: 'Ritual Ink', qty: 1, rarity: 'Uncommon' },
+  { name: 'Korriban Tomb Ash', qty: 1, rarity: 'Uncommon' },
+  { name: 'Low-Grade Kyber Splinter', qty: 1, rarity: 'Uncommon' }
+];
+
+const BEAST_DISSECTION_TARGETS = [
+  'K’lor’slug Matron',
+  'Terentatek Brood Horror',
+  'Hssiss Elder Shade',
+  'Tuk’ata Alpha',
+  'K’lor’slug Brood Queen',
+  'Dark Side Nexus Predator'
+];
+
+const SPIRIT_RITUAL_INGREDIENTS = [
+  { name: 'Ghost-Touched Ash', qty: 2, rarity: 'Rare' },
+  { name: 'Bound Spirit Shard', qty: 1, rarity: 'Forbidden' },
+  { name: 'Ancient Sith Binding Chain', qty: 1, rarity: 'Rare' },
+  { name: 'Black Kyber Focus', qty: 1, rarity: 'Forbidden' },
+  { name: 'Blood of a Force-Sensitive', qty: 1, rarity: 'Forbidden' },
+  { name: 'Dark Nexus Soil', qty: 1, rarity: 'Rare' }
+];
+
+const ABOMINATOR_STAFF_INGREDIENTS = [
+  { name: 'Ancient Sith Spine Core', qty: 1, rarity: 'Unique' },
+  { name: 'Terentatek Brood Heart', qty: 1, rarity: 'Legendary' },
+  { name: 'Living Tuk’ata Alpha Heart', qty: 1, rarity: 'Legendary' },
+  { name: 'Bound Spirit Shard', qty: 1, rarity: 'Forbidden' },
+  { name: 'Dark Side Nexus Crystal', qty: 1, rarity: 'Unique' },
+  { name: 'Ritual Forge Coal', qty: 3, rarity: 'Rare' },
+  { name: 'Preserved Abomination Tendon', qty: 2, rarity: 'Forbidden' },
+  { name: 'Black Alchemical Staff Frame', qty: 1, rarity: 'Rare' }
+];
+
+function ensureAlchemyProgress(char) {
+  char.unlockedTrees = Array.isArray(char.unlockedTrees) ? char.unlockedTrees : [];
+  char.treeUnlockProgress = char.treeUnlockProgress || {};
+  char.specialUnlocks = char.specialUnlocks || {};
+  char.treeUnlockProgress.basicRitualTracked = char.treeUnlockProgress.basicRitualTracked || {};
+  char.treeUnlockProgress.beastDissections = Number(char.treeUnlockProgress.beastDissections || 0);
+  char.treeUnlockProgress.spiritHolocrons = Number(char.treeUnlockProgress.spiritHolocrons || 0);
+  char.treeUnlockProgress.boundSithGhost = Boolean(char.treeUnlockProgress.boundSithGhost);
+  if (!char.unlockedTrees.length) {
+    const starting = char.startingFocus && STARTING_TREE_IDS.includes(char.startingFocus) ? char.startingFocus : 'sith_artifice';
+    char.unlockedTrees.push(starting);
+  }
+  // Backward compatibility for older demo saves: if a character already has purchased nodes in a tree, show that tree as unlocked.
+  Object.entries(TREE_DATA).forEach(([key, tree]) => {
+    if ((tree.nodes || []).some(n => (char.unlockedNodes || []).includes(n.id)) && !char.unlockedTrees.includes(key)) char.unlockedTrees.push(key);
+  });
+  return char;
+}
+
+function treeKeyForNode(nodeId) {
+  return Object.entries(TREE_DATA).find(([_, t]) => (t.nodes || []).some(n => n.id === nodeId))?.[0] || 'sith_artifice';
+}
+function treeEntriesOrdered() { return Object.entries(TREE_DATA).sort((a,b)=>(a[1].order||99)-(b[1].order||99)); }
+function isTreeUnlocked(key, char) { ensureAlchemyProgress(char); return char.unlockedTrees.includes(key); }
+function ingredientNeedRows(char, list) {
+  return list.map(i => {
+    const have = ingredientQty(char, i.name);
+    const ok = have >= i.qty;
+    return `<div class="ingredient-need ${ok?'met':'missing'}"><span class="need-icon">${ok?'✓':'×'}</span><span><b>${safe(i.name)}</b><br><small>${safe(i.rarity)}</small></span><span>${have} / ${i.qty}</span></div>`;
+  }).join('');
+}
+function hasIngredientSet(char, list) { return list.every(i => ingredientQty(char, i.name) >= i.qty); }
+function consumeIngredientSet(char, list) { list.forEach(req => { const item = char.ingredients.find(i => i.name.toLowerCase() === req.name.toLowerCase()); if (item) item.qty = Math.max(0, Number(item.qty || 0) - req.qty); }); }
+function addTrackedIngredient(char, ingredient) {
+  const existing = char.ingredients.find(i => i.name.toLowerCase() === ingredient.name.toLowerCase());
+  if (existing) return;
+  char.ingredients.push(ing(ingredient.name, ingredient.rarity, 'Unlock Component', 0, 'Unknown', 'Heretical', 'Tracked Requirement'));
+}
+
+function canUnlockTree(key, char) {
+  ensureAlchemyProgress(char);
+  if (isTreeUnlocked(key, char)) return false;
+  if (STARTING_TREE_IDS.includes(key)) return state.settings.gmMode || hasIngredientSet(char, BASIC_TREE_RITUAL_INGREDIENTS);
+  if (key === 'beast_shaping') return state.settings.gmMode || char.treeUnlockProgress.beastDissections >= 3;
+  if (key === 'spirit_anomaly') return state.settings.gmMode || char.treeUnlockProgress.spiritHolocrons >= 3 || char.treeUnlockProgress.boundSithGhost;
+  if (key === 'sith_abomination') return state.settings.gmMode || char.specialUnlocks.abominatorStaff === true;
+  return false;
+}
+
+function renderOnboarding(char) {
+  const suggestedAP = Math.max(6, 8 + Number(char.intMod || 0));
+  return `
+    <div class="app-shell onboarding-shell">
+      <header class="topbar onboarding-top">
+        <div class="title-row">
+          <div class="sith-mark">✥</div>
+          <div class="title-block"><div class="app-title">FORCE ALCHEMY</div><div class="sith-runes">profile initiation · character binding · choose starting tree</div></div>
+          <div class="window-controls"><button class="icon-btn" data-action="help">?</button></div>
+        </div>
+      </header>
+      <main class="main onboarding-main">
+        <section class="onboarding-hero panel">
+          <div>
+            <div class="section-kicker">Initial Setup</div>
+            <h1 class="page-title">Create Profile / Bind Character</h1>
+            <p class="effect-text">Players choose one of three starting trees during creation. The other two starting trees can be unlocked later through a basic initiation ritual, tomb primer, or GM-approved discovery.</p>
+            <div class="onboarding-steps"><span class="active">1 Profile</span><span class="active">2 Character</span><span class="active">3 Starting Tree</span><span>4 Dashboard</span></div>
+          </div>
+          <div class="setup-sigil">△</div>
+        </section>
+        <section class="onboarding-grid">
+          <div class="panel">
+            <h3 class="panel-title">Player Profile</h3>
+            <div class="form-grid">
+              <label class="wide">Player Display Name<input id="setup-player" class="input" placeholder="Example: Gage" value="${safe(state.player?.name || '')}"></label>
+              <label class="wide">Campaign Name<input id="setup-campaign" class="input" placeholder="Old Republic Dark Side Campaign" value="${safe(state.campaign?.name || 'Old Republic Dark Side Campaign')}"></label>
+            </div>
+            <p class="tiny subtle">This version saves to this browser. Cloud accounts/database saving would be the later deployed version.</p>
+          </div>
+          <div class="panel">
+            <h3 class="panel-title">Character Identity</h3>
+            <div class="form-grid">
+              <label>Character Name<input id="setup-char-name" class="input" value="${safe(char.name || 'New Sith Alchemist')}"></label>
+              <label>Sith Rank / Title<input id="setup-rank" class="input" value="${safe(char.rank || 'Sith Initiate')}"></label>
+              <label>Class<select id="setup-class" class="input">${['Sith Initiate','Sith Inquisitor','Sith Apprentice','Sith Lord'].map(x=>`<option ${x===char.className?'selected':''}>${x}</option>`).join('')}</select></label>
+              <label>Path<select id="setup-path" class="input">${['Sith Alchemist','Sith Assassin','Sith Shadow','Sith Sorcerer','Custom Sith Path'].map(x=>`<option ${x===char.path?'selected':''}>${x}</option>`).join('')}</select></label>
+            </div>
+          </div>
+          <div class="panel">
+            <h3 class="panel-title">Starting Alchemy Values</h3>
+            <div class="form-grid">
+              <label>Character Level<input id="setup-level" type="number" class="input" min="6" value="${Number(char.level || 6)}"></label>
+              <label>Sith Inquisitor Level<input id="setup-inq" type="number" class="input" min="1" max="5" value="${Number(char.sithInqLevel || 1)}"></label>
+              <label>Intelligence Modifier<input id="setup-int" type="number" class="input" value="${Number(char.intMod || 0)}"></label>
+              <label class="wide">Calculated Alchemy Points<input class="input" readonly value="${apFormulaText(char)}"></label>
+              <div class="wide unlock-note"><b>Fresh Start:</b> New characters begin with only their chosen starting tree available. No nodes, recipes, ingredients, crafted items, creatures, or projects are preloaded.</div>
+            </div>
+          </div>
+          <div class="panel wide-panel">
+            <h3 class="panel-title">Choose One Starting Tree</h3>
+            <div class="focus-grid starter-only">
+              ${STARTING_TREE_IDS.map((id, idx)=>{ const t=TREE_DATA[id]; return `<label class="focus-card ${idx===0?'active':''}"><input type="radio" name="setup-focus" value="${id}" ${idx===0?'checked':''}><span class="hex-icon ${t.colorClass}">${t.icon}</span><b>${safe(t.name)}</b><small>${safe(t.description)}</small><em>Starting access available</em></label>`; }).join('')}
+            </div>
+            <div class="unlock-note"><b>Locked later trees:</b> Beast Shaping requires rare Sith creature dissections. Spirit & Force-Anomaly requires ancient Sith alchemist holocrons or binding a Sith Force ghost. Sith Abomination requires the Abominator’s Staff.</div>
+          </div>
+        </section>
+        <section class="setup-actions panel"><button class="red-btn huge-btn" data-action="complete-onboarding">Create Profile and Enter App</button><button class="blue-btn huge-btn" data-action="import-build">Import Saved Character</button></section>
+      </main>
+    </div>`;
+}
+
+function renderTrees(char) {
+  ensureAlchemyProgress(char);
+  const activeKey = state.activeTree || 'sith_artifice';
+  const activeTree = TREE_DATA[activeKey] || TREE_DATA.sith_artifice;
+  const treeUnlocked = isTreeUnlocked(activeKey, char);
+  const selected = treeUnlocked ? (nodeById(state.selectedNodeId) || activeTree.nodes[0]) : null;
+  return `<h1 class="page-title">Alchemy Trees</h1>
+    <section class="tree-forest-shell">
+      <div class="tree-toolbar panel">
+        <div><b>Available AP</b><span class="ap-chip">${availableAP(char)}</span></div>
+        <div><b>Trees Unlocked</b><span>${char.unlockedTrees.length} / ${treeEntriesOrdered().length}</span></div>
+        <div><b>Beast Dissections</b><span>${char.treeUnlockProgress.beastDissections} / 3</span></div>
+        <div><b>Alchemist Holocrons</b><span>${char.treeUnlockProgress.spiritHolocrons} / 3</span></div>
+        <button class="ghost-btn" data-action="grant-ap">Grant AP</button>
+      </div>
+      <div class="tree-forest-wrap panel">
+        <div class="tier-rail"><span>I<br><small>Tier 1</small></span><span>II<br><small>Tier 2</small></span><span>III<br><small>Tier 3</small></span><span>IV<br><small>Tier 4</small></span></div>
+        <div class="tree-forest">
+          ${treeEntriesOrdered().map(([key, tree]) => renderTreeColumn(key, tree, char)).join('')}
+        </div>
+      </div>
+      <aside class="panel node-panel tree-detail-panel">${treeUnlocked ? renderNodePanel(selected, char, activeTree) : renderTreeUnlockPanel(activeKey, activeTree, char)}</aside>
+    </section>`;
+}
+
+function renderTreeColumn(key, tree, char) {
+  const unlocked = isTreeUnlocked(key, char);
+  const active = state.activeTree === key;
+  const learned = (tree.nodes || []).filter(n => char.unlockedNodes.includes(n.id)).length;
+  const total = (tree.nodes || []).length;
+  const style = `--tree-accent:${tree.accent || '#f05a4f'}`;
+  return `<div class="tree-column ${unlocked?'unlocked':'tree-locked'} ${active?'active':''} ${tree.colorClass||''}" style="${style}" data-tree="${key}">
+    <div class="tree-column-head"><div class="tree-emblem">${tree.icon}</div><div><h3>${safe(tree.name)}</h3><small>${unlocked ? safe(tree.accessLabel || 'Unlocked') : 'LOCKED'}</small></div></div>
+    <div class="mini-tree-canvas">
+      ${renderMiniTreeSvg(tree, char, unlocked)}
+      ${(tree.nodes || []).map(n => renderMiniNode(n, char, key, unlocked)).join('')}
+      ${!unlocked ? `<div class="locked-tree-veil"><div class="lock-big">🔒</div><b>${safe(tree.unlockSummary || 'Requires unlock ritual')}</b><span>Click to view unlock method</span></div>` : ''}
+    </div>
+    <div class="tree-column-foot"><b>${learned} / ${total}</b><span>${unlocked ? 'nodes learned' : tree.accessLabel || 'locked'}</span></div>
+  </div>`;
+}
+
+function renderMiniTreeSvg(tree, char, unlocked) {
+  const paths = [];
+  (tree.nodes || []).forEach(n => (n.prereq||[]).forEach(p => {
+    const from = tree.nodes.find(x=>x.id===p);
+    if (from) paths.push(`<line x1="${from.x}%" y1="${from.y}%" x2="${n.x}%" y2="${n.y}%" class="${unlocked && char.unlockedNodes.includes(n.id)?'learned':'dormant'}" />`);
+  }));
+  return `<svg class="mini-tree-lines">${paths.join('')}</svg>`;
+}
+
+function renderMiniNode(node, char, key, treeUnlocked) {
+  const status = treeUnlocked ? statusForNode(node, char) : 'locked';
+  const rank = getRank(char, node.id);
+  const label = status === 'unlocked' ? `${rank}/${node.rankMax || 1}` : `0/${node.rankMax || 1}`;
+  const title = `${node.name} — ${node.tier} — ${node.cost} AP`;
+  const data = treeUnlocked ? `data-node="${node.id}"` : '';
+  return `<button class="mini-node ${status} ${state.selectedNodeId===node.id?'selected':''}" style="left:${node.x}%; top:${node.y}%" ${data} title="${safe(title)}"><span class="node-core">${status==='locked'||status==='unaffordable'?'🔒':node.icon}</span><span class="mini-node-name">${safe(node.name)}</span><span class="mini-node-rank">${label}</span></button>`;
+}
+
+function statusForNode(node, char) {
+  ensureAlchemyProgress(char);
+  const key = treeKeyForNode(node.id);
+  if (!isTreeUnlocked(key, char)) return 'locked';
+  if (char.unlockedNodes.includes(node.id)) return 'unlocked';
+  if (node.gate === 'story') return prereqsMet(node, char) ? 'story' : 'locked';
+  if (node.gate === 'gm' || node.gate === 'force') return prereqsMet(node, char) ? 'gm' : 'locked';
+  if (!prereqsMet(node, char)) return 'locked';
+  if (availableAP(char) < node.cost) return 'unaffordable';
+  return 'available';
+}
+
+function renderTreeUnlockPanel(key, tree, char) {
+  ensureAlchemyProgress(char);
+  const unlockable = canUnlockTree(key, char);
+  const gmHint = state.settings.gmMode ? '<div class="green">GM mode may unlock this tree immediately.</div>' : '<div class="subtle">GM approval may also unlock this in play.</div>';
+  if (STARTING_TREE_IDS.includes(key)) {
+    return `<h3 class="panel-title">${safe(tree.name)} — Locked</h3><p class="effect-text">This is one of the two starting trees the character did not choose. It can be unlocked with a basic initiation ritual, a tomb primer, or another GM-approved discovery.</p><h4 class="red">Initiation Ritual Ingredients</h4><div class="ingredient-needs">${ingredientNeedRows(char, BASIC_TREE_RITUAL_INGREDIENTS)}</div>${gmHint}<br><button class="blue-btn" data-action="track-basic-tree-ritual" data-tree="${key}">Track Ritual Ingredients</button><button class="red-btn" data-action="unlock-tree" data-tree="${key}" ${unlockable?'':'disabled'}>${unlockable?'Unlock Tree':'Requirements Missing'}</button>`;
+  }
+  if (key === 'beast_shaping') {
+    return `<h3 class="panel-title">Beast Shaping — Locked</h3><p class="effect-text">This tree requires hands-on study of rare Sith-type apex creatures. A normal hssiss or tuk’ata is not enough; the alchemist must dissect unique, powerful, or matriarch-level specimens.</p><div class="unlock-meter"><b>Rare Sith Creature Dissections</b><span>${char.treeUnlockProgress.beastDissections} / 3</span><div class="bar"><span style="width:${Math.min(100,char.treeUnlockProgress.beastDissections/3*100)}%"></span></div></div><h4 class="gold">Valid examples</h4><div class="tag-list">${BEAST_DISSECTION_TARGETS.map(x=>`<span>${safe(x)}</span>`).join('')}</div>${gmHint}<br><button class="blue-btn" data-action="record-beast-dissection">Record Rare Dissection</button><button class="red-btn" data-action="unlock-tree" data-tree="${key}" ${unlockable?'':'disabled'}>${unlockable?'Unlock Beast Shaping':'Need 3 Dissections'}</button>`;
+  }
+  if (key === 'spirit_anomaly') {
+    return `<h3 class="panel-title">Spirit & Force-Anomaly — Locked</h3><p class="effect-text">This tree unlocks through forbidden Sith knowledge. The alchemist must either study three ancient Sith alchemist holocrons found in places like Korriban, or perform a dangerous ritual to bind a Sith Force ghost to their will.</p><div class="unlock-meter"><b>Ancient Sith Alchemist Holocrons</b><span>${char.treeUnlockProgress.spiritHolocrons} / 3</span><div class="bar"><span style="width:${Math.min(100,char.treeUnlockProgress.spiritHolocrons/3*100)}%"></span></div></div><h4 class="red">Ghost Binding Ritual Ingredients</h4><div class="ingredient-needs compact">${ingredientNeedRows(char, SPIRIT_RITUAL_INGREDIENTS)}</div><div class="subtle">Bound Sith Force Ghost: ${char.treeUnlockProgress.boundSithGhost ? '<span class="green">Yes</span>' : '<span class="bad">No</span>'}</div>${gmHint}<br><button class="blue-btn" data-action="record-spirit-holocron">Record Holocron Study</button><button class="ghost-btn" data-action="bind-sith-ghost">Perform Ghost Binding</button><button class="red-btn" data-action="unlock-tree" data-tree="${key}" ${unlockable?'':'disabled'}>${unlockable?'Unlock Spirit Tree':'Requirements Missing'}</button>`;
+  }
+  if (key === 'sith_abomination') {
+    return `<h3 class="panel-title">Sith Abomination Tree — Locked</h3><p class="effect-text">This path cannot be unlocked through normal study. The alchemist must acquire or craft the <b>Abominator’s Staff</b>, a forbidden ritual focus used to bind flesh, spirit, and creation into one obedient nightmare.</p><div class="lock-banner"><b>Prerequisite:</b> Abominator’s Staff ${char.specialUnlocks.abominatorStaff ? '<span class="green">Acquired</span>' : '<span class="bad">Missing</span>'}</div><h4 class="red">Known Crafting Method</h4><p class="subtle">The app should not reveal where to find the staff. It only reveals the brutal recipe if the player tries to inspect the locked tree.</p><div class="ingredient-needs staff-list">${ingredientNeedRows(char, ABOMINATOR_STAFF_INGREDIENTS)}</div>${gmHint}<br><button class="blue-btn" data-action="track-staff-recipe">Track Staff Recipe</button><button class="ghost-btn" data-action="craft-abominator-staff" ${hasIngredientSet(char, ABOMINATOR_STAFF_INGREDIENTS)?'':'disabled'}>Craft Abominator’s Staff</button><button class="ghost-btn" data-action="acquire-abominator-staff">GM: Mark Staff Acquired</button><button class="red-btn" data-action="unlock-tree" data-tree="${key}" ${unlockable?'':'disabled'}>${unlockable?'Unlock Abomination Tree':'Staff Required'}</button>`;
+  }
+  return `<h3 class="panel-title">Tree Locked</h3><p class="effect-text">Unlock requirements are not yet defined.</p>`;
+}
+
+function completeOnboarding(useDemo) {
+  const base = useDemo ? demoCharacter() : makeFreshCharacter();
+  const playerName = document.getElementById('setup-player')?.value.trim() || 'Player';
+  const campaignName = document.getElementById('setup-campaign')?.value.trim() || 'Old Republic Dark Side Campaign';
+  base.name = document.getElementById('setup-char-name')?.value.trim() || base.name || 'New Sith Alchemist';
+  base.rank = document.getElementById('setup-rank')?.value.trim() || base.rank || 'Sith Initiate';
+  base.className = document.getElementById('setup-class')?.value || base.className;
+  base.path = document.getElementById('setup-path')?.value || base.path;
+  base.level = Number(document.getElementById('setup-level')?.value || base.level || 6);
+  base.sithInqLevel = Number(document.getElementById('setup-inq')?.value || base.sithInqLevel || 1);
+  base.intMod = Number(document.getElementById('setup-int')?.value || base.intMod || 0);
+  base.bonusAP = Number(base.bonusAP || 0); base.totalAP = totalAPEarned(base);
+  const mode = document.getElementById('setup-mode')?.value || 'fresh';
+  const focus = document.querySelector('input[name="setup-focus"]:checked')?.value || 'sith_artifice';
+  base.startingFocus = STARTING_TREE_IDS.includes(focus) ? focus : 'sith_artifice';
+  base.unlockedTrees = [base.startingFocus];
+  base.treeUnlockProgress = { basicRitualTracked: {}, beastDissections: 0, spiritHolocrons: 0, boundSithGhost: false };
+  base.specialUnlocks = { abominatorStaff: false };
+  if (!useDemo && mode === 'starter') {
+    const first = TREE_DATA[base.startingFocus]?.nodes?.[0];
+    if (first) { base.unlockedNodes = [first.id]; base.nodeRanks = {}; base.history = [hist(`Unlocked: ${first.name}`, -first.cost)]; }
+  }
+  if (!useDemo && mode === 'demo') {
+    const demo = demoCharacter();
+    Object.assign(base, { ingredients: demo.ingredients, creations: demo.creations, creatures: demo.creatures, projects: demo.projects, unlockedNodes: demo.unlockedNodes, nodeRanks: demo.nodeRanks, history: demo.history, bonusAP: base.bonusAP, totalAP: totalAPEarned(base) });
+    base.unlockedTrees = ['sith_artifice', 'dark_compounds', 'ritual_tools'];
+    base.treeUnlockProgress.beastDissections = 2;
+    base.treeUnlockProgress.spiritHolocrons = 1;
+  }
+  if (useDemo) {
+    base.unlockedTrees = ['sith_artifice', 'dark_compounds', 'ritual_tools', 'beast_shaping'];
+    base.treeUnlockProgress = { basicRitualTracked: {}, beastDissections: 3, spiritHolocrons: 1, boundSithGhost: false };
+    base.specialUnlocks = { abominatorStaff: false };
+  }
+  state.player = { name: playerName };
+  state.campaign = { name: campaignName };
+  state.characters = [base];
+  state.activeCharacterId = base.id;
+  state.activeTab = 'dashboard';
+  state.activeTree = base.startingFocus;
+  state.selectedNodeId = TREE_DATA[base.startingFocus]?.nodes?.[0]?.id || 'art_foundry';
+  state.onboardingComplete = true;
+  saveState(); render(); toast('Profile created. Autosave enabled.');
+}
+
+function makeFreshCharacter() {
+  const ch = {
+    id: uid(),
+    name: 'New Sith Alchemist',
+    className: 'Sith Inquisitor',
+    path: 'Sith Alchemist',
+    rank: 'Sith Initiate',
+    faction: 'Sith Empire',
+    alignment: 'Dark Side',
+    level: 6,
+    xp: 0,
+    xpNext: 1000,
+    sithInqLevel: 1,
+    intMod: 0,
+    bonusAP: 0,
+    totalAP: 0,
+    startingFocus: 'sith_artifice',
+    unlockedTrees: ['sith_artifice'],
+    treeUnlockProgress: { basicRitualTracked: {}, beastDissections: 0, spiritHolocrons: 0, boundSithGhost: false },
+    specialUnlocks: { abominatorStaff: false },
+    ritualInsight: [],
+    unlockedNodes: [],
+    nodeRanks: {},
+    ingredients: [],
+    creations: [],
+    creatures: [],
+    projects: [],
+    notes: 'Fresh Sith Alchemist profile.',
+    history: [hist('Character profile created', 0)]
+  };
+  ch.totalAP = totalAPEarned(ch);
+  return ch;
+}
+
+function unlockTree(key) {
+  const char = c(); ensureAlchemyProgress(char);
+  if (isTreeUnlocked(key, char)) return toast('Tree already unlocked.');
+  if (!canUnlockTree(key, char)) return toast('Tree unlock requirements are not met.');
+  if (STARTING_TREE_IDS.includes(key) && !state.settings.gmMode) consumeIngredientSet(char, BASIC_TREE_RITUAL_INGREDIENTS);
+  char.unlockedTrees.push(key);
+  TREE_DATA[key].tier = TREE_DATA[key].tier === 'Locked' ? 'Tier I' : TREE_DATA[key].tier;
+  addHistory(char, `Unlocked Tree: ${TREE_DATA[key]?.name || key}`, 0);
+  state.activeTree = key;
+  state.selectedNodeId = TREE_DATA[key]?.nodes?.[0]?.id || state.selectedNodeId;
+  rerenderSave(`${TREE_DATA[key]?.name || 'Tree'} unlocked.`);
+}
+
+function trackBasicTreeRitual(key) {
+  const char = c(); ensureAlchemyProgress(char);
+  BASIC_TREE_RITUAL_INGREDIENTS.forEach(i => addTrackedIngredient(char, i));
+  char.treeUnlockProgress.basicRitualTracked[key] = true;
+  addHistory(char, `Tracked unlock ritual: ${TREE_DATA[key]?.name || key}`, 0);
+  rerenderSave('Basic tree ritual ingredients added to inventory tracker.');
+}
+function recordBeastDissection() { const char = c(); ensureAlchemyProgress(char); char.treeUnlockProgress.beastDissections = Math.min(3, char.treeUnlockProgress.beastDissections + 1); addHistory(char, 'Recorded rare Sith creature dissection', 0); rerenderSave('Rare Sith creature dissection recorded.'); }
+function recordSpiritHolocron() { const char = c(); ensureAlchemyProgress(char); char.treeUnlockProgress.spiritHolocrons = Math.min(3, char.treeUnlockProgress.spiritHolocrons + 1); addHistory(char, 'Studied ancient Sith alchemist holocron', 0); rerenderSave('Holocron study recorded.'); }
+function bindSithGhost() { const char = c(); ensureAlchemyProgress(char); if (!state.settings.gmMode && !hasIngredientSet(char, SPIRIT_RITUAL_INGREDIENTS)) return toast('Missing ingredients for Sith ghost binding ritual.'); if (!state.settings.gmMode) consumeIngredientSet(char, SPIRIT_RITUAL_INGREDIENTS); char.treeUnlockProgress.boundSithGhost = true; addHistory(char, 'Bound a Sith Force ghost to unlock Spirit study', 0); rerenderSave('Sith Force ghost binding recorded.'); }
+function trackAbominatorStaffRecipe() { const char = c(); ensureAlchemyProgress(char); ABOMINATOR_STAFF_INGREDIENTS.forEach(i => addTrackedIngredient(char, i)); char.specialUnlocks.abominatorStaffRecipeTracked = true; addHistory(char, 'Tracked Abominator’s Staff recipe', 0); rerenderSave('Abominator’s Staff ingredients added to inventory tracker.'); }
+function craftAbominatorStaff() { const char = c(); ensureAlchemyProgress(char); if (!hasIngredientSet(char, ABOMINATOR_STAFF_INGREDIENTS) && !state.settings.gmMode) return toast('Missing Abominator’s Staff ingredients.'); if (!state.settings.gmMode) consumeIngredientSet(char, ABOMINATOR_STAFF_INGREDIENTS); char.specialUnlocks.abominatorStaff = true; char.creations = char.creations || []; char.creations.push(creation('Abominator’s Staff', 'Ritual Tool', 'Staff', 'Stable', 'Maintenance: After each abomination ritual', true, false, 'Forbidden staff required to unlock Sith Abomination alchemy', 'Sith Abomination')); addHistory(char, 'Crafted Abominator’s Staff', 0); rerenderSave('Abominator’s Staff crafted. Sith Abomination tree can now be unlocked.'); }
+function acquireAbominatorStaff() { const char = c(); ensureAlchemyProgress(char); char.specialUnlocks.abominatorStaff = true; addHistory(char, 'Acquired Abominator’s Staff', 0); rerenderSave('Abominator’s Staff marked as acquired.'); }
+
+window.addEventListener('error', (event) => {
+  const app = document.getElementById('app');
+  if (app && !app.innerHTML.trim()) {
+    app.innerHTML = '<div style="padding:24px;color:#ff5555;background:#050505;font-family:Arial"><h2>Force Alchemy could not start</h2><p>This usually means the mobile file viewer blocked JavaScript. Extract the ZIP first, then open index.html in Chrome, or deploy it through Vercel/GitHub Pages.</p><pre style="white-space:pre-wrap;color:#aaa">' + String(event.message || 'Unknown error') + '</pre></div>';
+  }
+});
+
+document.addEventListener('click', handleClick);
+document.addEventListener('change', handleChange);
+window.addEventListener('beforeunload', saveState);
+initKeyboard();
+try {
+  saveState();
+  render();
+} catch (err) {
+  console.error(err);
+  const app = document.getElementById('app');
+  if (app) app.innerHTML = '<div style="padding:24px;color:#ff5555;background:#050505;font-family:Arial"><h2>Force Alchemy could not start</h2><p>Extract the ZIP first and open index.html in Chrome, or deploy it through Vercel/GitHub Pages.</p><pre style="white-space:pre-wrap;color:#aaa">' + String(err && err.message ? err.message : err) + '</pre></div>';
+}
